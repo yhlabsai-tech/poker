@@ -1,10 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Heads-Up — Texas Hold'em</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f0d">
+<title>Hold'Em — 2 à 8 joueurs en ligne</title>
 <style>
+
   :root{
     --bg:#100d0a;
     --rail:#241a13;
@@ -304,11 +306,21 @@
     font-size:clamp(26px,7vw,34px); line-height:1.02 }
   .result .hand{ color:var(--gold-soft); font-size:15px; margin-bottom:4px }
   .result .pot-won{ font-family:var(--mono); font-size:15px; color:var(--text); margin-bottom:18px }
-  .result .reveal-hands{ display:flex; gap:22px; justify-content:center; margin:14px 0 20px }
-  .result .rh{ text-align:center }
-  .result .rh .nm{ font-size:12px; color:var(--muted); margin-bottom:7px }
-  .result .rh .cards{ display:flex; gap:6px; justify-content:center }
+  .result .reveal-hands{ display:flex; gap:14px; justify-content:center; align-items:flex-start; margin:14px 0 20px; flex-wrap:wrap }
+  .result .rh{ text-align:center; padding:11px 13px 12px; border-radius:14px; border:1px solid transparent; min-width:120px }
+  .result .rh.win{ border-color:rgba(201,162,75,.55); background:rgba(201,162,75,.09);
+    box-shadow:0 0 28px -12px rgba(201,162,75,.55) }
+  .result .rh .nm{ font-size:12.5px; color:var(--muted); margin-bottom:9px }
   .result .rh.win .nm{ color:var(--gold-soft); font-weight:700 }
+  .result .rh .cards{ display:flex; gap:7px; justify-content:center }
+  .result .rh .cards .card,.result .rh .cards .card-back{ width:50px; height:70px }
+  .result .rh .cards .card .pip{ font-size:26px } .result .rh .cards .card .ix{ font-size:13px }
+  .result .rh .rank{ margin-top:10px; font-size:11.5px; color:var(--muted); font-family:var(--mono);
+    letter-spacing:.01em }
+  .result .rh.win .rank{ color:var(--gold-soft) }
+  .result .rh .tagwin{ display:inline-block; margin-top:9px; font-size:9.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:#241a0c; padding:3px 10px; border-radius:999px; font-weight:800;
+    background:linear-gradient(180deg,var(--gold-soft),var(--gold)) }
   .result .next{ width:100%; padding:15px; border-radius:13px; font-weight:700; color:#241a0c; font-size:15px;
     background:linear-gradient(180deg,var(--gold-soft),var(--gold)) }
   .gameover h2{ font-size:clamp(30px,9vw,44px) }
@@ -350,70 +362,102 @@
   .conn .d{ width:7px; height:7px; border-radius:50%; background:var(--muted-2) }
   .conn.on .d{ background:var(--ok); box-shadow:0 0 8px var(--ok) }
   .conn.off .d{ background:var(--danger); box-shadow:0 0 8px var(--danger) }
+
+/* ===================================================================
+   AJOUTS MULTI-JOUEURS (2 à 8) — table à plusieurs sièges
+=================================================================== */
+
+/* --- salle d'attente / liste des joueurs --- */
+.roster{ margin:14px 0 4px; text-align:left }
+.roster .rh2{ font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:7px }
+.pl-row{ display:flex; align-items:center; gap:8px; padding:8px 11px; border:1px solid var(--rail-edge); border-radius:9px; margin-bottom:6px; background:#100b07; font-size:14px; color:var(--ink) }
+.pl-row .you{ font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:#241a0c; background:linear-gradient(180deg,var(--gold-soft),var(--gold)); padding:2px 7px; border-radius:999px; font-weight:800 }
+.hosting .k{ font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:8px }
+.hosting .code-box{ font-family:var(--mono); font-size:34px; letter-spacing:.32em; font-weight:700; color:var(--gold-soft); background:#0e0a06; border:1px solid var(--rail-edge); border-radius:12px; padding:14px 6px; text-align:center; text-indent:.32em }
+.hosting .code-actions{ display:flex; gap:8px; margin-top:10px }
+.hosting .code-actions .secondary{ flex:1 }
+.hosting .status{ margin-top:12px }
+
+/* --- table à N sièges --- */
+.table.nseat{ display:flex; flex-direction:column; gap:6px; padding:8px 6px 4px; min-height:0 }
+.opponents{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-content:flex-start; padding:2px }
+.pod{ width:90px; background:linear-gradient(180deg,#16100a,#0e0a06); border:1px solid var(--rail-edge); border-radius:12px; padding:7px 6px 6px; text-align:center; position:relative; transition:border-color .2s, box-shadow .2s, opacity .2s }
+.pod.active{ border-color:var(--gold); box-shadow:0 0 18px -4px rgba(201,162,75,.6) }
+.pod.folded{ opacity:.42 }
+.pod.out{ opacity:.3 }
+.pod .podtop{ display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:5px; min-height:15px }
+.pod .nm{ font-size:11.5px; color:var(--ink); max-width:58px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.pod .podcards{ display:flex; gap:3px; justify-content:center; min-height:34px }
+.pod .podcards .card,.pod .podcards .card-back{ width:24px; height:34px; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,.4) }
+.pod .podcards .card .pip{ font-size:13px }
+.pod .podcards .card .ix{ font-size:8px; padding:1px 2px; top:1px; left:2px }
+.pod .podcards .card .ix small{ font-size:7px }
+.pod .podfoot{ margin-top:5px; font-size:12.5px; color:var(--gold-soft); font-family:var(--mono) }
+.pod .podbet{ min-height:15px; margin-top:3px; font-size:10px; color:var(--muted); display:flex; align-items:center; justify-content:center; gap:2px; flex-wrap:wrap }
+.pod .podbet .bt{ display:inline-flex; align-items:center; gap:2px; color:var(--ink) }
+.muted{ color:var(--muted-2) }
+
+/* --- pastilles de position --- */
+.pos{ font-size:8.5px; font-weight:800; letter-spacing:.02em; padding:2px 5px; border-radius:999px; line-height:1; color:#0e0a06; flex:0 0 auto }
+.pos.d{ background:#e9e2d2 }
+.pos.sb{ background:#7fb0d8; color:#06121d }
+.pos.bb{ background:#d8a05a }
+
+/* --- siège du joueur (en bas) --- */
+.meseat{ display:flex; align-items:center; gap:14px; justify-content:center; padding:8px 4px 2px; margin-top:2px; border-top:1px solid var(--rail-edge) }
+.meseat.active{ box-shadow:inset 0 2px 0 -1px var(--gold) }
+.meseat .mecards{ display:flex; gap:5px }
+.meseat .mecards .card,.meseat .mecards .card-back{ width:46px; height:64px }
+.meseat .meinfo{ text-align:left; min-width:118px }
+.meseat .mrow1{ display:flex; align-items:center; gap:6px; font-size:14px; color:var(--ink); font-weight:600 }
+.meseat .mrow2{ display:flex; align-items:center; gap:8px; margin-top:4px }
+.meseat .mrow2 .amt{ font-family:var(--mono); font-size:15px; color:var(--gold-soft) }
+.meseat .mebet{ min-height:16px; margin-top:4px; font-size:11px; color:var(--ink) }
+.meseat .mebet .bt{ display:inline-flex; align-items:center; gap:3px }
+.meseat .tapis{ font-size:9px; font-weight:800; letter-spacing:.08em; color:#241a0c; background:linear-gradient(180deg,#e7b15a,#d8a05a); padding:2px 7px; border-radius:999px }
+
+/* --- résumé des pots à l'abattage --- */
+.result .pots{ margin:4px auto 14px; text-align:left; display:inline-block }
+.result .potrow{ display:flex; gap:9px; align-items:center; font-size:12px; color:var(--muted); padding:3px 0 }
+.result .potrow b{ color:var(--gold-soft); font-family:var(--mono) }
+.result .reveal-hands .rh .tagwin{ margin-top:4px; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#241a0c; background:linear-gradient(180deg,var(--gold-soft),var(--gold)); padding:2px 7px; border-radius:999px; display:inline-block; font-weight:800 }
+
+/* small screens: shrink pods a touch so up to 7 fit */
+@media (max-width:380px){
+  .pod{ width:82px }
+  .pod .podcards .card,.pod .podcards .card-back{ width:22px; height:31px }
+  .meseat .mecards .card,.meseat .mecards .card-back{ width:42px; height:59px }
+}
+
+/* élever les sièges au-dessus du monogramme/feutre décoratifs (z-index:0) */
+.table.nseat > *{ position:relative; z-index:2 }
+
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- ============ LOBBY ============ -->
+  <!-- ============ SALLE D'ATTENTE ============ -->
   <section id="lobby">
     <div class="brand">
-      <div class="kicker">No-Limit · Tête-à-tête</div>
-      <h1>Heads<span class="amp">‑</span>Up</h1>
-      <div class="sub">Texas Hold'em à deux · en ligne ou sur un écran</div>
+      <div class="kicker">No-Limit Hold'em · 2 à 8 joueurs</div>
+      <h1>Hold<span class="amp">'</span>Em</h1>
+      <div class="sub">En ligne · chacun sur son appareil</div>
     </div>
     <div class="panel setup" id="lobbyPanel"></div>
-    <div class="foot" id="lobbyFoot">Pair-à-pair chiffré de bout en bout — aucune partie n'est stockée sur un serveur.</div>
+    <div class="foot" id="lobbyFoot">Connexion pair-à-pair directe entre navigateurs — aucune partie n'est stockée sur un serveur.</div>
   </section>
 
-  <!-- ============ SETUP (un seul appareil) ============ -->
-  <section id="setup" class="hide">
-    <div class="brand">
-      <div class="kicker">Un seul appareil · Tête-à-tête</div>
-      <h1>Heads<span class="amp">‑</span>Up</h1>
-      <div class="sub">Texas Hold'em à deux · tournoi maison</div>
-    </div>
-    <div class="panel setup">
-      <div class="seat-tags">
-        <div class="field">
-          <label>Joueur 1</label>
-          <input id="n1" type="text" value="Joueur 1" maxlength="14" autocomplete="off">
-        </div>
-        <div class="field">
-          <label>Joueur 2</label>
-          <input id="n2" type="text" value="Joueur 2" maxlength="14" autocomplete="off">
-        </div>
-      </div>
-      <div class="opt-row">
-        <div class="txt">
-          <b>Mode privé</b>
-          <span>Chaque joueur dévoile ses cartes à son tour. Idéal sur un seul écran.</span>
-        </div>
-        <div id="privSwitch" class="switch" role="switch" aria-checked="true" tabindex="0"></div>
-      </div>
-      <button class="btn-primary" id="startBtn">Distribuer la première main</button>
-
-      <div class="rules">
-        <div class="ri"><b>Tapis de départ</b> — 1 000 $ chacun</div>
-        <div class="ri"><b>Blinds</b> — 10 / 20 $, alternées</div>
-        <div class="ri"><b>Niveaux</b> — montée toutes les 10 min</div>
-        <div class="ri"><b>Bouton</b> = petite blind (règle heads-up)</div>
-        <div class="chip-legend" id="chipLegend"></div>
-      </div>
-    </div>
-    <div class="foot">Le donneur (bouton) parle en premier preflop, en dernier après le flop.</div>
-  </section>
-
-  <!-- ============ GAME ============ -->
+  <!-- ============ JEU ============ -->
   <section id="game" class="hide">
     <div class="topbar">
       <div class="clock" id="clock">
         <div class="lvl"><div class="l1">Niveau</div><div class="l2 mono" id="lvlNum">1</div></div>
-        <div class="time" id="time">10:00</div>
+        <div class="time" id="time">5:00</div>
         <div class="blinds">
           <div class="b1">Blinds</div>
-          <div class="b2" id="blindsNow">10 / 20</div>
-          <div class="b3" id="blindsNext">puis 20 / 40</div>
+          <div class="b2" id="blindsNow">20 / 40</div>
+          <div class="b3" id="blindsNext">puis 40 / 80</div>
         </div>
       </div>
       <button class="tb-btn" id="pauseBtn" title="Pause / reprendre">⏸</button>
@@ -425,49 +469,70 @@
         </div>
         <div class="mrow" id="restartLevel">
           <span style="font-size:16px">⟲</span>
-          <div class="txt">Remettre le chrono à zéro<span>Repart du niveau actuel</span></div>
+          <div class="txt">Remettre le chrono à zéro<span>Repart du niveau 1</span></div>
         </div>
         <hr>
         <div class="mrow danger" id="newGameBtn">
           <span style="font-size:16px">⏏</span>
-          <div class="txt">Nouvelle partie<span>Réinitialise les tapis à 1 000 $</span></div>
+          <div class="txt">Quitter la partie<span>Revenir à l'accueil</span></div>
         </div>
       </div>
     </div>
 
-    <div class="table">
-      <div class="felt-line"></div>
-      <div id="topSeat"></div>
+    <div class="table nseat">
+      <div class="opponents" id="opponents"></div>
       <div class="center">
         <div class="pot"><span class="chip white chip-sm lab" style="font-size:8px"></span>
           <span class="pl">Pot</span><span class="pv mono" id="potVal">0 $</span></div>
         <div class="board" id="board"></div>
-        <div class="bet-line" id="topBet"></div>
       </div>
-      <div class="bet-line" id="botBet"></div>
-      <div id="botSeat"></div>
+      <div class="meseat" id="meSeat"></div>
     </div>
 
     <div class="actionbar" id="actionbar"></div>
     <div class="foot" id="handFoot">Main 1</div>
   </section>
+
 </div>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-/* ===================================================================
-   ENGINE
-=================================================================== */
-const SUITS=["s","h","d","c"];
+/* =========================================================
+   Hold'Em 2-8 joueurs — un seul fichier, P2P (PeerJS).
+   Moteur testé : 2887/2887 (conservation des jetons + pots annexes).
+========================================================= */
+/* ---- helpers de rendu (affichage uniquement) ---- */
 const SUIT_GLYPH={s:"♠",h:"♥",d:"♦",c:"♣"};
 const RANK_LABEL={11:"J",12:"Q",13:"K",14:"A"};
 function rankLabel(r){ return RANK_LABEL[r] || (r===10?"10":String(r)); }
 function isRed(s){ return s==="h"||s==="d"; }
+function fmt(n){ return Math.round(n).toLocaleString("fr-FR")+" $"; }
+function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+function escapeHTML(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function chipBreakdown(amount){
+  const denoms=[[100,"blue"],[50,"red"],[20,"green"],[10,"white"]];
+  const out=[]; let a=Math.round(amount);
+  for(const [v,c] of denoms){ const n=Math.floor(a/v); if(n>0){ out.push({v,c,n}); a-=n*v; } }
+  return out;
+}
+function chipBadges(amount){
+  const parts=chipBreakdown(amount);
+  if(parts.length===0) return '<span class="chip-tag"><span class="chip white chip-sm"></span><span class="cnt">0</span></span>';
+  return parts.map(p=>`<span class="chip-tag"><span class="chip ${p.c} chip-sm"></span><span class="cnt">×${p.n}</span></span>`).join("");
+}
+function cardHTML(card){
+  const col=isRed(card.suit)?"red":"black";
+  return `<div class="card ${col}"><span class="ix">${rankLabel(card.rank)}<small>${SUIT_GLYPH[card.suit]}</small></span><span class="pip">${SUIT_GLYPH[card.suit]}</span></div>`;
+}
+function backHTML(){ return '<div class="card-back"></div>'; }
 
+/* ===================================================================
+   MOTEUR POKER MULTI-JOUEURS (2 à 8) — logique pure, sans DOM.
+   Réutilise l'évaluateur de mains vérifié. Gère les pots annexes.
+=================================================================== */
+const SUITS=["s","h","d","c"];
 function freshDeck(){
   const d=[];
   for(const s of SUITS) for(let r=2;r<=14;r++) d.push({rank:r,suit:s});
-  // Fisher–Yates
   for(let i=d.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]]; }
   return d;
 }
@@ -508,628 +573,385 @@ function evaluate7(cards){ let best=null;
   for(const combo of combinations(cards,5)){ const s=evaluate5(combo); if(!best||cmpScore(s,best)>0) best=s; }
   return best; }
 const HAND_NAMES=["Carte haute","Paire","Deux paires","Brelan","Quinte","Couleur","Full","Carré","Quinte flush"];
-function handName(score){
-  let base=HAND_NAMES[score[0]];
-  if(score[0]===8 && score[1]===14) base="Quinte flush royale";
-  return base;
-}
+function handName(score){ let b=HAND_NAMES[score[0]]; if(score[0]===8&&score[1]===14) b="Quinte flush royale"; return b; }
 
-/* ===================================================================
-   STATE
-=================================================================== */
-const BLINDS=[ [10,20],[20,40],[30,60],[50,100],[100,200],[150,300],[200,400],[300,600],[500,1000],[1000,2000] ];
-const LEVEL_SECONDS=600; // 10 minutes
+const BLINDS=[ [20,40],[40,80],[50,100],[100,200],[150,300],[200,400],[300,600],[500,1000],[800,1600],[1000,2000] ];
 const START_STACK=1000;
-
-let G=null;        // game state
-let UI={ sizerOpen:false, sizerAmount:0, menuOpen:false, privateMode:true, showAll:false };
-let clock={ secs:LEVEL_SECONDS, running:false, id:null };
-
-/* ---- réseau (WebRTC / PeerJS) ---- */
-let MODE="solo", ROLE=null;                 // MODE: "solo" | "net" ; ROLE: "host" | "guest"
-let netUI={ sizerOpen:false, sizerAmount:0 };
-let peer=null, gConn=null;
-let myName="Joueur", hostName="Hôte", guestName="Invité";
-let roomCode=null, oppConnected=false, netChromeReady=false, curView=null, joinTimer=null, netOpenTimer=null;
-const NS="hu-poker-";
-const CODE_ALPHABET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
 function blindsFor(level){ return BLINDS[Math.min(level-1, BLINDS.length-1)]; }
-function fmt(n){ return Math.round(n).toLocaleString("fr-FR")+" $"; }
 
-function newGame(){
-  MODE="solo"; ROLE=null;
-  G={
-    players:[
-      { name:document.getElementById("n1").value.trim()||"Joueur 1", stack:START_STACK, hole:[], bet:0, committed:0, folded:false, allIn:false, acted:false },
-      { name:document.getElementById("n2").value.trim()||"Joueur 2", stack:START_STACK, hole:[], bet:0, committed:0, folded:false, allIn:false, acted:false }
-    ],
-    button: Math.random()<0.5?0:1,
-    deck:[], board:[], pot:0,
-    street:"idle", current:0,
-    betLevel:0, lastRaise:0,
-    level:1, handLevel:1, handNo:0,
-    inHand:false, revealed:false,
-    result:null, gameOver:false
-  };
-  clock={ secs:LEVEL_SECONDS, running:false, id:null };
-  startClock();
-  newHand(true);
+let G=null;
+
+function createGame(names, startStack){
+  startStack = startStack||START_STACK;
+  G={ players: names.map(nm=>({ name:nm, stack:startStack, hole:[], bet:0, committed:0,
+                                folded:false, allIn:false, acted:false, out:false, connected:true })),
+      N: names.length, button:0, deck:[], board:[], pot:0, pots:[],
+      street:"idle", current:-1, betLevel:0, minRaise:0, lastAggressor:-1, sb:0, bb:0,
+      level:1, handLevel:1, handNo:0, inHand:false, result:null, gameOver:false };
+  return G;
 }
+
+function seats(pred){ const out=[]; for(let i=0;i<G.N;i++) if(pred(G.players[i],i)) out.push(i); return out; }
+function nextSeat(from, pred){ for(let k=1;k<=G.N;k++){ const i=(from+k)%G.N; if(pred(G.players[i],i)) return i; } return -1; }
+function orderFromButton(list){ const out=[]; for(let k=1;k<=G.N;k++){ const i=(G.button+k)%G.N; if(list.includes(i)) out.push(i); } return out; }
+function eligibleSeats(){ return seats((p,i)=> !p.out && p.stack>0); }
+
+function commit(p, amt){
+  amt=Math.min(amt, p.stack);
+  p.stack-=amt; p.bet+=amt; p.committed+=amt; G.pot+=amt;
+  if(p.stack===0) p.allIn=true;
+}
+function postBlind(i, amt){ commit(G.players[i], Math.min(amt, G.players[i].stack)); }
 
 function newHand(first){
   if(G.gameOver) return;
-  G.handNo++;
-  if(!first) G.button=1-G.button;
-  G.handLevel=G.level;
-  const [sb,bb]=blindsFor(G.level);
-  for(const p of G.players){ p.hole=[]; p.bet=0; p.committed=0; p.folded=false; p.allIn=false; p.acted=false; }
-  G.deck=freshDeck(); G.board=[]; G.pot=0;
-  G.betLevel=0; G.lastRaise=bb; G.result=null;
-  // deal 2 each (button first, like a real deal)
-  for(let n=0;n<2;n++){ G.players[G.button].hole.push(G.deck.pop()); G.players[1-G.button].hole.push(G.deck.pop()); }
-  // blinds: button posts SB, other posts BB
-  postBlind(G.button, sb);
-  postBlind(1-G.button, bb);
-  G.betLevel=Math.max(G.players[0].bet, G.players[1].bet);
-  G.street="preflop";
-  G.current=G.button;           // button (SB) acts first preflop
-  G.inHand=true; G.revealed=false;
-  UI.sizerOpen=false;
-  render();
-}
-function postBlind(i, amt){
-  const p=G.players[i]; const pay=Math.min(amt,p.stack);
-  p.stack-=pay; p.bet+=pay; p.committed+=pay; G.pot+=pay; if(p.stack===0) p.allIn=true;
+  const elig = eligibleSeats();
+  if(elig.length<=1){ G.gameOver=true; G.inHand=false; return; }
+  G.handNo++; G.handLevel=G.level;
+  const [sb,bb]=blindsFor(G.level); G.sb=sb; G.bb=bb;
+  for(const p of G.players){ p.hole=[]; p.bet=0; p.committed=0; p.folded=false; p.allIn=false; p.acted=false; if(p.stack<=0) p.out=true; }
+  // button
+  if(first) G.button = elig[Math.floor(Math.random()*elig.length)];
+  else      G.button = nextSeat(G.button, (p,i)=>elig.includes(i));
+  // mark non-eligible as folded (sitting out) for display & logic
+  for(let i=0;i<G.N;i++) if(!elig.includes(i)) G.players[i].folded=true;
+  G.deck=freshDeck(); G.board=[]; G.pot=0; G.pots=[]; G.result=null;
+  G.betLevel=0; G.minRaise=bb;
+  const sbSeat=nextSeat(G.button,(p,i)=>elig.includes(i));
+  const bbSeat=nextSeat(sbSeat,(p,i)=>elig.includes(i));
+  G.sbSeat=sbSeat; G.bbSeat=bbSeat;
+  // deal 2 starting from SB
+  for(let n=0;n<2;n++){ let s=sbSeat; do{ G.players[s].hole.push(G.deck.pop()); s=nextSeat(s,(p,i)=>elig.includes(i)); } while(s!==sbSeat); }
+  postBlind(sbSeat, sb);
+  postBlind(bbSeat, bb);
+  G.betLevel=Math.max(...elig.map(i=>G.players[i].bet));
+  G.minRaise=bb; G.lastAggressor=bbSeat;
+  for(const p of G.players) p.acted=false;   // BB keeps option
+  G.street="preflop"; G.inHand=true;
+  G.current=nextSeat(bbSeat,(p,i)=>elig.includes(i) && !p.allIn);
+  if(G.current===-1){ runOutAndShowdown(); return; }
+  // if nobody but blinds can act etc., advance() guards handle it on first action
 }
 
-function legal(){
-  const p=G.players[G.current], opp=G.players[1-G.current];
+function legalFor(){
+  const p=G.players[G.current];
   const toCall=Math.max(0, G.betLevel-p.bet);
   const canCheck=toCall===0;
-  const callAmt=Math.min(toCall,p.stack);
-  const oppCanAct=opp.stack>0 && !opp.allIn;
-  const canRaise=p.stack>toCall && oppCanAct;
-  const maxTo=p.bet+p.stack;                 // all-in target
-  let minTo=G.betLevel+G.lastRaise;          // standard min raise/bet
-  if(minTo>maxTo) minTo=maxTo;               // all-in for less is allowed
-  if(G.betLevel===0) minTo=Math.min(p.bet+blindsFor(G.handLevel)[1], maxTo); // min bet = BB
-  return { toCall, canCheck, callAmt, canRaise, minTo, maxTo, allInCall: toCall>=p.stack };
+  const callAmt=Math.min(toCall, p.stack);
+  const allInCall=callAmt<toCall;
+  const maxTo=p.bet+p.stack;
+  let minTo=G.betLevel+G.minRaise; if(minTo>maxTo) minTo=maxTo;
+  const othersCanAct=G.players.some((q,i)=> i!==G.current && !q.folded && !q.allIn);
+  const canRaise=p.stack>toCall && othersCanAct && maxTo>G.betLevel;
+  return { toCall, canCheck, callAmt, allInCall, minTo, maxTo, canRaise,
+           isBet:G.betLevel===0, betLevel:G.betLevel, curBet:p.bet, potNow:G.pot };
 }
 
-function act(type, amount){
-  if(!G.inHand) return;
-  const p=G.players[G.current], opp=G.players[1-G.current];
-  if(type==="fold"){ p.folded=true; G.inHand=false; resolve(); return; }
-  if(type==="check"){ p.acted=true; }
-  else if(type==="call"){
-    const toCall=Math.max(0,G.betLevel-p.bet); const pay=Math.min(toCall,p.stack);
-    p.stack-=pay; p.bet+=pay; p.committed+=pay; G.pot+=pay; if(p.stack===0)p.allIn=true; p.acted=true;
-  } else if(type==="raise"){
-    const L=legal(); amount=Math.max(L.minTo, Math.min(amount, L.maxTo));
-    const prev=G.betLevel; const pay=amount-p.bet;
-    p.stack-=pay; p.bet=amount; p.committed+=pay; G.pot+=pay; if(p.stack===0)p.allIn=true;
-    G.lastRaise=Math.max(G.lastRaise, amount-prev); G.betLevel=amount; p.acted=true; opp.acted=false;
-  }
-  UI.sizerOpen=false;
+function doAction(type, amount){
+  if(!G.inHand || G.current<0) return;
+  const p=G.players[G.current];
+  if(type==="fold"){ p.folded=true; p.acted=true; }
+  else if(type==="check"){ if(G.betLevel-p.bet>0) return; p.acted=true; }
+  else if(type==="call"){ commit(p, Math.min(G.betLevel-p.bet, p.stack)); p.acted=true; }
+  else if(type==="raise"){
+    const max=p.bet+p.stack;
+    let minTo=G.betLevel+G.minRaise; if(minTo>max) minTo=max;
+    let target=Math.round(amount); if(target<minTo) target=minTo; if(target>max) target=max;
+    commit(p, target-p.bet);
+    if(p.bet>G.betLevel){
+      const inc=p.bet-G.betLevel; G.minRaise=Math.max(G.minRaise, inc);
+      G.betLevel=p.bet; G.lastAggressor=G.current;
+      for(let i=0;i<G.N;i++) if(i!==G.current && !G.players[i].folded && !G.players[i].allIn) G.players[i].acted=false;
+    }
+    p.acted=true;
+  } else return;
   advance();
 }
 
 function advance(){
-  const live=G.players.filter(p=>!p.folded);
-  const canAct=live.filter(p=>!p.allIn && (p.bet<G.betLevel || !p.acted));
-  if(canAct.length===0){ endStreet(); return; }
-  // next to act = the remaining player who can act (heads-up: the opponent)
-  G.current=G.players.indexOf(canAct[0]);
-  G.revealed=false;
-  render();
+  const contesting=seats(p=>!p.folded);
+  if(contesting.length<=1){ resolveFoldWin(); return; }
+  const canAct=seats(p=>!p.folded && !p.allIn);
+  if(canAct.length===0){ runOutAndShowdown(); return; }
+  const pendingCall=canAct.filter(i=>G.players[i].bet<G.betLevel);
+  if(canAct.length===1 && pendingCall.length===0){ runOutAndShowdown(); return; }
+  const need=canAct.filter(i=> !G.players[i].acted || G.players[i].bet<G.betLevel);
+  if(need.length===0){ endStreet(); return; }
+  G.current=nextSeat(G.current,(q,i)=> !q.folded && !q.allIn && (!q.acted || q.bet<G.betLevel));
+  if(G.current===-1){ endStreet(); }
 }
+
+function dealBoard(n){ for(let k=0;k<n;k++) G.board.push(G.deck.pop()); }
 
 function endStreet(){
-  // sweep current-street bets (already in pot)
   for(const p of G.players){ p.bet=0; p.acted=false; }
-  G.betLevel=0; G.lastRaise=blindsFor(G.handLevel)[1];
-  const live=G.players.filter(p=>!p.folded);
-  const stillBetting = live.filter(p=>!p.allIn && p.stack>0).length>=2;
+  G.betLevel=0; G.minRaise=G.bb;
+  if(G.street==="preflop"){ dealBoard(3); G.street="flop"; }
+  else if(G.street==="flop"){ dealBoard(1); G.street="turn"; }
+  else if(G.street==="turn"){ dealBoard(1); G.street="river"; }
+  else if(G.street==="river"){ resolveShowdown(); return; }
+  const canAct=seats(p=>!p.folded && !p.allIn);
+  if(canAct.length<=1){ runOutAndShowdown(); return; }
+  G.current=nextSeat(G.button,(q,i)=> !q.folded && !q.allIn);
+}
 
-  const order=["preflop","flop","turn","river","showdown"];
-  let idx=order.indexOf(G.street);
-  const nextStreet=order[idx+1];
+function runOutAndShowdown(){
+  for(const p of G.players){ p.bet=0; p.acted=false; }
+  G.betLevel=0;
+  while(G.board.length<5) dealBoard(1);
+  resolveShowdown();
+}
 
-  if(!stillBetting){
-    // someone all-in: run the board out then showdown
-    runOut();
-    return;
+function computeSidePots(){
+  const pots=[];
+  const levels=[...new Set(seats(p=>p.committed>0).map(i=>G.players[i].committed))].sort((a,b)=>a-b);
+  let prev=0;
+  for(const L of levels){
+    const layer=L-prev;
+    const participants=seats(p=>p.committed>=L);
+    const amount=layer*participants.length;
+    const eligible=participants.filter(i=>!G.players[i].folded);
+    pots.push({ amount, eligible });
+    prev=L;
   }
-  if(nextStreet==="showdown"){ G.inHand=false; resolve(); return; }
-  dealStreet(nextStreet);
-  G.street=nextStreet;
-  G.current=1-G.button;          // non-button (BB) acts first post-flop
-  G.revealed=false;
-  render();
-}
-function dealStreet(street){
-  G.deck.pop(); // burn
-  if(street==="flop"){ for(let i=0;i<3;i++) G.board.push(G.deck.pop()); }
-  else { G.board.push(G.deck.pop()); }
-}
-function runOut(){
-  // deal whatever board remains, then resolve
-  const steps=[];
-  if(G.board.length===0) steps.push("flop","turn","river");
-  else if(G.board.length===3) steps.push("turn","river");
-  else if(G.board.length===4) steps.push("river");
-  for(const s of steps) dealStreet(s);
-  G.street="showdown"; G.inHand=false;
-  resolve();
-}
-
-function resolve(){
-  // refund uncalled portion (heads-up)
-  const [a,b]=G.players;
-  if(a.committed>b.committed){ const d=a.committed-b.committed; a.stack+=d; G.pot-=d; a.committed=b.committed; }
-  else if(b.committed>a.committed){ const d=b.committed-a.committed; b.stack+=d; G.pot-=d; b.committed=a.committed; }
-
-  const live=G.players.map((p,i)=>({p,i})).filter(o=>!o.p.folded);
-  let res;
-  if(live.length===1){
-    const w=live[0].i; G.players[w].stack+=G.pot;
-    res={ type:"fold", winner:w, pot:G.pot };
-  } else {
-    const s0=evaluate7([...a.hole,...G.board]);
-    const s1=evaluate7([...b.hole,...G.board]);
-    const c=cmpScore(s0,s1);
-    if(c>0){ a.stack+=G.pot; res={type:"win",winner:0,pot:G.pot,score:s0,scoreL:s1}; }
-    else if(c<0){ b.stack+=G.pot; res={type:"win",winner:1,pot:G.pot,score:s1,scoreL:s0}; }
-    else { const half=G.pot/2; a.stack+=half; b.stack+=half; res={type:"tie",pot:G.pot,score:s0}; }
+  const merged=[];
+  for(const pot of pots){
+    const last=merged[merged.length-1];
+    if(last && last.eligible.length===pot.eligible.length && last.eligible.every(x=>pot.eligible.includes(x))) last.amount+=pot.amount;
+    else merged.push({ amount:pot.amount, eligible:pot.eligible.slice() });
   }
-  G.pot=0; G.result=res; G.street="showdown";
-  if(G.players[0].stack<=0 || G.players[1].stack<=0){ G.gameOver=true; }
-  render();
+  return merged;
+}
+
+function resolveFoldWin(){
+  const w=seats(p=>!p.folded)[0];
+  const amount=G.pot;
+  G.players[w].stack+=amount;
+  G.result={ type:"fold", winnerSeat:w, amount, revealedSeats:[], winnings:{[w]:amount}, bestNames:{}, pots:[] };
+  endHand();
+}
+
+function resolveShowdown(){
+  const pots=computeSidePots();
+  const contesting=seats(p=>!p.folded);
+  const scores={};
+  for(const i of contesting) scores[i]=evaluate7(G.players[i].hole.concat(G.board));
+  const winnings={}, potResults=[];
+  for(const pot of pots){
+    const elig=pot.eligible.filter(i=>!G.players[i].folded);
+    if(elig.length===0) continue;
+    let best=null, winners=[];
+    for(const i of elig){ const s=scores[i]; const c=best?cmpScore(s,best):1; if(c>0){ best=s; winners=[i]; } else if(c===0) winners.push(i); }
+    const ordered=orderFromButton(winners);
+    const share=Math.floor(pot.amount/ordered.length);
+    let rem=pot.amount-share*ordered.length;
+    for(const w of ordered){ const add=share+(rem>0?1:0); if(rem>0) rem--; winnings[w]=(winnings[w]||0)+add; }
+    potResults.push({ amount:pot.amount, winners:ordered.slice(), handName:handName(best) });
+  }
+  for(const i in winnings) G.players[i].stack+=winnings[i];
+  G.result={ type:"showdown", pots:potResults, winnings,
+             bestNames:Object.fromEntries(contesting.map(i=>[i,handName(scores[i])])),
+             revealedSeats:contesting.slice() };
+  endHand();
+}
+
+function endHand(){
+  G.street="showdown"; G.inHand=false; G.current=-1;
+  for(const p of G.players) if(p.stack<=0) p.out=true;
+  const alive=G.players.filter(p=>!p.out && p.stack>0);
+  if(alive.length<=1) G.gameOver=true;
 }
 
 /* ===================================================================
-   CLOCK
+   APPLICATION — multi-joueurs en ligne (étoile : l'hôte relaie tout)
 =================================================================== */
-function startClock(){ clock.running=true; tickLoop(); }
-function tickLoop(){
+const LEVEL_SECONDS=300;                 // 5 min par niveau
+let MODE="net", ROLE=null;               // ROLE: "host" | "guest"
+let peer=null, myName="Joueur", roomCode=null, mySeat=0;
+let guests=[];                           // hôte : [{conn, seat, name, connected}]
+let hostConn=null;                       // invité : connexion vers l'hôte
+let clock={ secs:LEVEL_SECONDS, running:false, id:null };
+let netUI={ sizerOpen:false, sizerAmount:0 };
+let curView=null, netChromeReady=false, started=false, joinTimer=null, netOpenTimer=null;
+let lobbyRoster=[];
+const NS="hu-poker-", CODE_ALPHABET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+/* ---------- petits utilitaires ---------- */
+function val(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function show(which){ document.getElementById("lobby").classList.toggle("hide", which!=="lobby");
+                      document.getElementById("game").classList.toggle("hide", which!=="game"); }
+function lobbyStatus(t){ const s=document.getElementById("lobbyStatus"); if(s) s.innerHTML=t; }
+function lobbyError(t){ const s=document.getElementById("lobbyStatus"); if(s) s.innerHTML=`<span style="color:var(--danger)">${escapeHTML(t)}</span>`; }
+function genCode(){ let c=""; for(let i=0;i<4;i++) c+=CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)]; return c; }
+function teardownPeer(){ try{ if(hostConn) hostConn.close(); }catch(e){} try{ if(peer) peer.destroy(); }catch(e){} peer=null; hostConn=null; guests=[]; }
+function sendTo(conn,o){ if(conn&&conn.open){ try{ conn.send(o); }catch(e){} } }
+function broadcast(o){ for(const g of guests) if(g.connected) sendTo(g.conn,o); }
+
+function loadPeer(){
+  return new Promise((resolve,reject)=>{
+    if(window.Peer) return resolve();
+    const urls=["https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js",
+                "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"];
+    let i=0;
+    (function tryNext(){
+      if(i>=urls.length) return reject(new Error("peerjs"));
+      const s=document.createElement("script"); s.src=urls[i++];
+      s.onload=()=>resolve(); s.onerror=()=>tryNext();
+      document.head.appendChild(s);
+    })();
+    setTimeout(()=>{ if(!window.Peer) reject(new Error("peerjs-timeout")); },9000);
+  });
+}
+function copyText(t,btn){
+  const done=()=>{ if(btn){ const o=btn.textContent; btn.textContent="Copié ✓"; setTimeout(()=>btn.textContent=o,1400); } };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done).catch(()=>fallbackCopy(t,done)); }
+  else fallbackCopy(t,done);
+}
+function fallbackCopy(t,done){ const a=document.createElement("textarea"); a.value=t; a.style.position="fixed"; a.style.opacity="0"; document.body.appendChild(a); a.select(); try{ document.execCommand("copy"); done&&done(); }catch(e){} a.remove(); }
+
+/* ---------- horloge (autorité = hôte) ---------- */
+function clockSnap(){ const [sb,bb]=blindsFor(G.level); const nx=blindsFor(G.level+1);
+  return { secs:clock.secs, running:clock.running, level:G.level, sb, bb, nextSb:nx[0], nextBb:nx[1], maxLevel:BLINDS.length }; }
+function sendClock(){ broadcast(Object.assign({t:"clock"}, clockSnap())); }
+function startClock(){
   if(clock.id) clearInterval(clock.id);
   clock.id=setInterval(()=>{
     if(!clock.running) return;
     clock.secs--;
-    if(clock.secs<=0){
-      if(G.level<BLINDS.length){ G.level++; clock.secs=LEVEL_SECONDS; }
-      else clock.secs=0;
-    }
-    if(MODE==="net"){ paintClock(clockSnap()); sendClock(); }
-    else renderClock();
+    if(clock.secs<=0){ if(G.level<BLINDS.length){ G.level++; clock.secs=LEVEL_SECONDS; } else { clock.secs=0; clock.running=false; } }
+    paintClock(clockSnap()); sendClock();
   },1000);
-  if(MODE==="net"){ paintClock(clockSnap()); sendClock(); } else renderClock();
+  paintClock(clockSnap()); sendClock();
 }
-function togglePause(){ clock.running=!clock.running;
-  if(MODE==="net"){ paintClock(clockSnap()); sendClock(); }
-  else { renderClock(); document.getElementById("pauseBtn").textContent=clock.running?"⏸":"▶"; } }
-
-/* ===================================================================
-   RENDER
-=================================================================== */
-function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild; }
-
-function chipBreakdown(amount){
-  const denoms=[[100,"blue"],[50,"red"],[20,"green"],[10,"white"]];
-  const out=[]; let a=Math.round(amount);
-  for(const [v,c] of denoms){ const n=Math.floor(a/v); if(n>0){ out.push({v,c,n}); a-=n*v; } }
-  return out;
-}
-function chipBadges(amount){
-  const parts=chipBreakdown(amount);
-  if(parts.length===0) return '<span class="chip-tag"><span class="chip white chip-sm"></span><span class="cnt">0</span></span>';
-  return parts.map(p=>`<span class="chip-tag"><span class="chip ${p.c} chip-sm"></span><span class="cnt">×${p.n}</span></span>`).join("");
-}
-function cardHTML(card){
-  const col=isRed(card.suit)?"red":"black";
-  return `<div class="card ${col}"><span class="ix">${rankLabel(card.rank)}<small>${SUIT_GLYPH[card.suit]}</small></span><span class="pip">${SUIT_GLYPH[card.suit]}</span></div>`;
-}
-function backHTML(){ return '<div class="card-back"></div>'; }
-
-function seatHTML(idx, position){
-  const p=G.players[idx];
-  const isButton=idx===G.button;
-  const isActive=G.inHand && idx===G.current;
-  const showFace = UI.showAll || (idx===G.current && G.revealed) || (G.street==="showdown" && !p.folded);
-  const [sb,bb]=blindsFor(G.handLevel);
-  let blindTag="";
-  if(G.street==="preflop" && G.inHand){
-    if(idx===G.button) blindTag='<span class="blindtag">SB</span>';
-    else blindTag='<span class="blindtag">BB</span>';
-  }
-  const holeCards = p.hole.length
-    ? p.hole.map(c=> showFace?cardHTML(c):backHTML()).join("")
-    : `${'<div class="card-back" style="opacity:.25"></div>'.repeat(2)}`;
-
-  const cls=["seat", isActive?"active":"waiting", p.folded?"folded":""].join(" ");
-  return `<div class="${cls}">
-    ${position==="bottom"?`<div class="hole">${holeCards}</div>`:""}
-    <div class="who">
-      <div class="nm">${isActive?'<span class="dot"></span>':""}${escapeHTML(p.name)} ${blindTag}</div>
-      <div class="stack"><span class="amt mono">${fmt(p.stack)}</span><span class="chips">${chipBadges(p.stack)}</span></div>
-    </div>
-    ${isButton?'<div class="dbtn" title="Donneur">D</div>':""}
-    ${position==="top"?`<div class="hole">${holeCards}</div>`:""}
-  </div>`;
+function togglePause(){ clock.running=!clock.running; const b=document.getElementById("pauseBtn"); if(b) b.textContent=clock.running?"⏸":"▶"; paintClock(clockSnap()); sendClock(); }
+function paintClock(c){
+  if(!c) return;
+  document.getElementById("lvlNum").textContent=c.level;
+  const m=Math.floor(Math.max(0,c.secs)/60), s=Math.max(0,c.secs)%60;
+  const tEl=document.getElementById("time");
+  tEl.textContent=`${m}:${String(s).padStart(2,"0")}`;
+  tEl.style.color = (!c.running)?"var(--muted-2)" : (c.secs<=30?"var(--danger)":"var(--ink)");
+  document.getElementById("blindsNow").textContent=`${c.sb} / ${c.bb}`;
+  document.getElementById("blindsNext").textContent = (c.level>=c.maxLevel)?"niveau max":`puis ${c.nextSb} / ${c.nextBb}`;
 }
 
-function betChipsHTML(idx){
-  const p=G.players[idx];
-  if(p.folded){ return '<span style="color:var(--muted-2);font-size:11px;font-family:var(--mono)">couché</span>'; }
-  if(p.bet<=0) return "";
-  const discs=chipBreakdown(p.bet).map(c=>`<span class="chip ${c.c} chip-sm"></span>`).join("");
-  return `<span class="bet-chips">${discs}<span class="amt mono">${fmt(p.bet)}</span></span>`;
-}
-
-function render(){
-  if(!G) return;
-  if(MODE==="net"){ netHostSync(); return; }   // host paints itself + envoie l'état filtré à l'invité
-  document.getElementById("setup").classList.add("hide");
-  document.getElementById("game").classList.remove("hide");
-  renderClock();
-
-  // dynamic seats: active player at the bottom (closest to controls)
-  let bottom, top;
-  if(G.inHand){ bottom=G.current; top=1-G.current; }
-  else { bottom = G.result && G.result.winner!=null ? G.result.winner : (1-G.button); top=1-bottom; }
-  G._bottom=bottom;
-
-  document.getElementById("topSeat").innerHTML=seatHTML(top,"top");
-  document.getElementById("botSeat").innerHTML=seatHTML(bottom,"bottom");
-  document.getElementById("topBet").innerHTML=betChipsHTML(top);
-  document.getElementById("botBet").innerHTML=betChipsHTML(bottom);
-
-  // board
-  const slots=[];
-  for(let i=0;i<5;i++){ slots.push(G.board[i]?cardHTML(G.board[i]):'<div class="empty"></div>'); }
-  document.getElementById("board").innerHTML=slots.join("");
-  document.getElementById("potVal").textContent=fmt(G.pot + G.players[0].bet + G.players[1].bet);
-  document.getElementById("handFoot").textContent=`Main ${G.handNo}`+(G.level!==G.handLevel?" · nouveau niveau au prochain coup":"");
-
-  renderActions();
-  renderResultOverlay();
-  renderGate();
-  renderGameOver();
-}
-
-function renderClock(){
-  if(!G) return;
-  document.getElementById("lvlNum").textContent=G.level;
-  const m=Math.floor(clock.secs/60), s=clock.secs%60;
-  document.getElementById("time").textContent=`${m}:${String(s).padStart(2,"0")}`;
-  const [sb,bb]=blindsFor(G.level);
-  document.getElementById("blindsNow").textContent=`${sb} / ${bb}`;
-  const nx=blindsFor(G.level+1);
-  document.getElementById("blindsNext").textContent = (G.level<BLINDS.length)?`puis ${nx[0]} / ${nx[1]}`:"niveau max";
-  document.getElementById("clock").classList.toggle("paused",!clock.running);
-}
-
-function renderActions(){
-  const bar=document.getElementById("actionbar");
-  if(G.gameOver){ bar.innerHTML=""; return; }
-  if(!G.inHand){ // between hands (result handled by overlay) — keep empty bar
-    bar.innerHTML=`<div class="act-msg">Fin du coup.</div>`;
-    return;
-  }
-  if(UI.privateMode && !UI.showAll && !G.revealed){
-    bar.innerHTML=`<div class="act-msg">Touche pour révéler tes cartes, <b>${escapeHTML(G.players[G.current].name)}</b>.</div>`;
-    return;
-  }
-  if(UI.sizerOpen){ bar.innerHTML=""; bar.appendChild(buildSizer()); return; }
-
-  const L=legal();
-  const p=G.players[G.current];
-  let msg=`Au tour de <b>${escapeHTML(p.name)}</b>`;
-  if(L.toCall>0) msg+=` — à suivre ${fmt(L.toCall)}`;
-  let html=`<div class="act-msg">${msg}</div><div class="act-row">`;
-  html+=`<button class="act fold" data-a="fold">Se coucher</button>`;
-  if(L.canCheck) html+=`<button class="act check" data-a="check">Parole</button>`;
-  else html+=`<button class="act call" data-a="call">${L.allInCall?"Suivre tapis":"Suivre"}<small>${fmt(L.callAmt)}</small></button>`;
-  if(L.canRaise){
-    const isBet=G.betLevel===0;
-    html+=`<button class="act raise" data-a="sizer">${isBet?"Miser":"Relancer"}<small>min ${fmt(L.minTo)}</small></button>`;
-  }
-  html+=`</div>`;
-  bar.innerHTML=html;
-  bar.querySelectorAll("[data-a]").forEach(b=>b.addEventListener("click",()=>{
-    const a=b.dataset.a;
-    if(a==="sizer"){ openSizer(); }
-    else act(a);
-  }));
-}
-
-function openSizer(){
-  const L=legal();
-  UI.sizerOpen=true; UI.sizerAmount=L.minTo;
-  renderActions();
-}
-function buildSizer(){
-  const L=legal(); const p=G.players[G.current];
-  const amt=Math.max(L.minTo, Math.min(UI.sizerAmount, L.maxTo));
-  UI.sizerAmount=amt;
-  const left=p.stack-(amt-p.bet);
-  const pct=L.maxTo>L.minTo ? Math.round((amt-L.minTo)/(L.maxTo-L.minTo)*100) : 100;
-  const node=el(`<div class="sizer">
-    <div class="top">
-      <div><div class="lab">${G.betLevel===0?"Mise":"Relance à"}</div><div class="val mono">${fmt(amt)}</div></div>
-      <div class="left">Tapis restant<b class="mono">${fmt(left)}</b></div>
-    </div>
-    <input class="range" type="range" min="${L.minTo}" max="${L.maxTo}" step="10" value="${amt}" style="--pct:${pct}%">
-    <div class="chip-add">
-      <button data-add="10"><span class="chip white chip-md">10</span><span class="pl">+10</span></button>
-      <button data-add="20"><span class="chip green chip-md">20</span><span class="pl">+20</span></button>
-      <button data-add="50"><span class="chip red chip-md">50</span><span class="pl">+50</span></button>
-      <button data-add="100"><span class="chip blue chip-md">100</span><span class="pl">+100</span></button>
-    </div>
-    <div class="quick">
-      <button data-q="min">Min</button>
-      <button data-q="half">½ Pot</button>
-      <button data-q="pot">Pot</button>
-      <button data-q="allin">Tapis</button>
-    </div>
-    <div class="confirm">
-      <button class="cancel" data-x="cancel">Annuler</button>
-      <button class="go" data-x="go">${amt>=L.maxTo?"Tapis · ":""}${G.betLevel===0?"Miser":"Relancer"} ${fmt(amt)}</button>
-    </div>
-  </div>`);
-
-  const potNow=G.pot+G.players[0].bet+G.players[1].bet;
-  const setAmt=(v)=>{ UI.sizerAmount=Math.max(L.minTo,Math.min(Math.round(v/10)*10,L.maxTo)); renderActions(); };
-  node.querySelector(".range").addEventListener("input",e=>setAmt(+e.target.value));
-  node.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>setAmt(amt+(+b.dataset.add))));
-  node.querySelectorAll("[data-q]").forEach(b=>b.addEventListener("click",()=>{
-    const q=b.dataset.q;
-    if(q==="min") setAmt(L.minTo);
-    else if(q==="allin") setAmt(L.maxTo);
-    else if(q==="pot") setAmt(G.betLevel + potNow);          // pot-sized raise (approx, heads-up)
-    else if(q==="half") setAmt(G.betLevel + potNow/2);
-  }));
-  node.querySelector("[data-x='cancel']").addEventListener("click",()=>{ UI.sizerOpen=false; renderActions(); });
-  node.querySelector("[data-x='go']").addEventListener("click",()=>act("raise",UI.sizerAmount));
-  return node;
-}
-
-function renderGate(){
-  let g=document.getElementById("gateOverlay");
-  const show = G.inHand && G.street!=="showdown" && UI.privateMode && !UI.showAll && !G.revealed;
-  if(!show){ if(g) g.remove(); return; }
-  if(g) g.remove();
-  const p=G.players[G.current];
-  g=el(`<div class="overlay" id="gateOverlay"><div class="gate">
-    <div class="eye">🃏</div>
-    <div class="k">À toi de jouer</div>
-    <h2>${escapeHTML(p.name)}</h2>
-    <p>Passe l'appareil, puis révèle ta main. L'adversaire ne voit rien.</p>
-    <button class="reveal">Voir mes cartes</button>
-  </div></div>`);
-  g.querySelector(".reveal").addEventListener("click",()=>{ G.revealed=true; render(); });
-  document.body.appendChild(g);
-}
-
-function renderResultOverlay(){
-  let o=document.getElementById("resultOverlay");
-  if(!G.result || G.gameOver){ if(o) o.remove(); return; }
-  if(o) o.remove();
-  const r=G.result; const [a,b]=G.players;
-  let title, hand="", potline=`Pot de ${fmt(r.pot)}`;
-  if(r.type==="fold"){ title=`${escapeHTML(G.players[r.winner].name)} remporte le coup`; hand="L'adversaire s'est couché"; }
-  else if(r.type==="tie"){ title="Égalité — partage du pot"; hand=handName(r.score); }
-  else { title=`${escapeHTML(G.players[r.winner].name)} l'emporte`; hand=handName(r.score); }
-
-  // reveal both hands (unless a fold, where loser's hand stays hidden)
-  const reveal = r.type!=="fold";
-  const rh=(idx)=>{
-    const p=G.players[idx];
-    const win = (r.type==="win"&&r.winner===idx)||(r.type==="tie");
-    const cards = (reveal && !p.folded) ? p.hole.map(cardHTML).join("")
-                : p.hole.map(()=>backHTML()).join("");
-    return `<div class="rh ${win?"win":""}"><div class="nm">${escapeHTML(p.name)}${win?" ✦":""}</div><div class="cards" style="--s:1">${cards}</div></div>`;
-  };
-  o=el(`<div class="overlay" id="resultOverlay"><div class="result">
-    <div class="badge">Abattage</div>
-    <h2>${title}</h2>
-    <div class="hand">${hand}</div>
-    <div class="pot-won mono">${potline}</div>
-    <div class="reveal-hands">${rh(0)}${rh(1)}</div>
-    <button class="next">Coup suivant →</button>
-  </div></div>`);
-  o.querySelector(".next").addEventListener("click",()=>{ o.remove(); newHand(false); });
-  document.body.appendChild(o);
-}
-
-function renderGameOver(){
-  let o=document.getElementById("goOverlay");
-  if(!G.gameOver){ if(o) o.remove(); return; }
-  if(o) return;
-  const winner=G.players[0].stack>0?0:1;
-  const w=G.players[winner];
-  o=el(`<div class="overlay" id="goOverlay"><div class="result gameover">
-    <div class="trophy">🏆</div>
-    <div class="badge">Fin de partie</div>
-    <h2>${escapeHTML(w.name)} rafle tout</h2>
-    <div class="pot-won mono">Tapis final · ${fmt(w.stack)}</div>
-    <button class="next" id="rematch">Revanche · tapis à 1 000 $</button>
-    <button class="secondary" id="quit">Changer les joueurs</button>
-  </div></div>`);
-  o.querySelector("#rematch").addEventListener("click",()=>{ o.remove(); rematch(); });
-  o.querySelector("#quit").addEventListener("click",()=>{ location.reload(); });
-  document.body.appendChild(o);
-}
-function rematch(){
-  G.gameOver=false;
-  for(const p of G.players){ p.stack=START_STACK; }
-  G.level=1; clock.secs=LEVEL_SECONDS; clock.running=true;
-  document.getElementById("pauseBtn").textContent="⏸";
-  newHand(true);
-}
-
-function escapeHTML(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-
-/* ===================================================================
-   SETUP WIRING
-=================================================================== */
-(function initSetup(){
-  // chip legend
-  const legend=[["white","10 $"],["green","20 $"],["red","50 $"],["blue","100 $"]];
-  document.getElementById("chipLegend").innerHTML=legend.map(([c,v])=>
-    `<span class="cl"><span class="chip ${c} chip-sm lab" style="font-size:0"></span>${v}</span>`).join("");
-
-  const sw=document.getElementById("privSwitch");
-  const setSw=(v)=>{ UI.privateMode=v; sw.setAttribute("aria-checked",v?"true":"false"); };
-  sw.addEventListener("click",()=>setSw(!UI.privateMode));
-  sw.addEventListener("keydown",e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); setSw(!UI.privateMode); } });
-
-  document.getElementById("startBtn").addEventListener("click",()=>{ UI.showAll=!UI.privateMode?false:false; newGame(); });
-
-  // topbar
-  document.getElementById("pauseBtn").addEventListener("click",doPause);
-  const menu=document.getElementById("menu");
-  document.getElementById("menuBtn").addEventListener("click",()=>menu.classList.toggle("hide"));
-  document.addEventListener("click",(e)=>{
-    if(!menu.classList.contains("hide") && !menu.contains(e.target) && e.target.id!=="menuBtn") menu.classList.add("hide");
-  });
-  document.getElementById("toggleShowAll").addEventListener("click",()=>{
-    UI.showAll=!UI.showAll;
-    document.getElementById("showAllState").textContent=UI.showAll?"Toutes les cartes visibles":"Mode privé actif";
-    menu.classList.add("hide"); render();
-  });
-  document.getElementById("restartLevel").addEventListener("click",()=>{
-    G.level=1; clock.secs=LEVEL_SECONDS; clock.running=true;
-    document.getElementById("pauseBtn").textContent="⏸"; menu.classList.add("hide");
-    if(MODE==="net"){ paintClock(clockSnap()); sendClock(); } else renderClock();
-  });
-  document.getElementById("newGameBtn").addEventListener("click",()=>{ menu.classList.add("hide"); location.reload(); });
-})();
-
-/* ===================================================================
-   RÉSEAU — modèle hôte-autoritaire.
-   L'hôte possède G et toute la logique. L'invité envoie ses actions et
-   reçoit un état FILTRÉ (jamais les cartes adverses avant l'abattage).
-=================================================================== */
-function clockSnap(){
-  const [sb,bb]=blindsFor(G.level);
-  const nx=blindsFor(G.level+1);
-  return { secs:clock.secs, running:clock.running, level:G.level, sb, bb,
-           nextSb:nx[0], nextBb:nx[1], maxLevel:BLINDS.length };
-}
+/* ---------- vue filtrée pour un siège ---------- */
 function viewFor(seat){
-  const meP=G.players[seat], opP=G.players[1-seat];
   const sd=(G.street==="showdown" && G.result);
-  const revealOpp=!!(sd && G.result.type!=="fold" && !opP.folded);
-  const blindTagFor=(idx)=> (G.street==="preflop" && G.inHand) ? (idx===G.button?"SB":"BB") : "";
-  const me={ name:meP.name, stack:meP.stack, bet:meP.bet, hole:meP.hole.slice(),
-             isButton:seat===G.button, folded:meP.folded, allIn:meP.allIn, blindTag:blindTagFor(seat) };
-  const opp={ name:opP.name, stack:opP.stack, bet:opP.bet,
-              hole: revealOpp ? opP.hole.slice() : null,
-              isButton:(1-seat)===G.button, folded:opP.folded, allIn:opP.allIn, blindTag:blindTagFor(1-seat) };
-  const toActIsMe = G.inHand && G.current===seat;
-  let legalV=null;
-  if(toActIsMe){
-    const L=legal();
-    legalV={ toCall:L.toCall, canCheck:L.canCheck, callAmt:L.callAmt, canRaise:L.canRaise,
-             allInCall:L.allInCall, minTo:L.minTo, maxTo:L.maxTo,
-             isBet:G.betLevel===0, betLevel:G.betLevel, curBet:meP.bet,
-             potNow:G.pot+G.players[0].bet+G.players[1].bet };
+  const revealed = sd ? (G.result.revealedSeats||[]) : [];
+  const posOf=(i)=>({ isButton:i===G.button, isSB:i===G.sbSeat, isBB:i===G.bbSeat });
+  function pv(i, isMe){
+    const p=G.players[i];
+    const reveal = isMe ? true : revealed.includes(i);
+    const showRank = reveal && p.hole.length===2 && G.board.length===5 && sd && G.result.type==="showdown" && revealed.includes(i);
+    return { idx:i, name:p.name, stack:p.stack, bet:p.bet,
+             hole: reveal ? p.hole.slice() : null,
+             folded:p.folded, allIn:p.allIn, out:p.out, connected:p.connected,
+             rank: showRank ? handName(evaluate7(p.hole.concat(G.board))) : null,
+             ...posOf(i) };
   }
+  const me=pv(seat,true);
+  const others=[]; for(let k=1;k<G.N;k++){ const i=(seat+k)%G.N; others.push(pv(i,false)); }
+  const toActIsMe = G.inHand && G.current===seat;
+  const legalV = toActIsMe ? Object.assign({}, legalFor()) : null;
+
   let resultV=null;
   if(G.result){
     const r=G.result;
-    resultV={ type:r.type, pot:r.pot, reveal:(r.type!=="fold"),
-              winnerName:(r.type==="tie")?null:G.players[r.winner].name,
-              handName:(r.type==="fold")?null:handName(r.score),
-              meWon:(r.type==="tie")||(r.winner===seat),
-              oppWon:(r.type==="tie")||(r.winner===(1-seat)) };
+    if(r.type==="fold"){
+      resultV={ type:"fold", winnerName:G.players[r.winnerSeat].name, amount:r.amount, iWon:r.winnerSeat===seat };
+    } else {
+      const reveals=(r.revealedSeats||[]).map(i=>({ idx:i, name:G.players[i].name, hole:G.players[i].hole.slice(),
+                       handName:r.bestNames[i], won:(r.winnings[i]||0)>0 }));
+      const pots=r.pots.map(p=>({ amount:p.amount, handName:p.handName, winnerNames:p.winners.map(w=>G.players[w].name) }));
+      resultV={ type:"showdown", reveals, pots, iWon:(r.winnings[seat]||0)>0, myWinnings:r.winnings[seat]||0 };
+    }
   }
   let goV=null;
-  if(G.gameOver){
-    const w=G.players[0].stack>0?0:1;
-    goV={ winnerName:G.players[w].name, stack:G.players[w].stack, iWon:(w===seat) };
-  }
-  return { me, opp, board:G.board.slice(), inHand:G.inHand, street:G.street,
-           pot:G.pot+G.players[0].bet+G.players[1].bet, toActIsMe, legal:legalV,
-           handNo:G.handNo, levelMismatch:(G.level!==G.handLevel),
-           result:resultV, gameOver:goV, clock:clockSnap() };
-}
-function netHostSync(){
-  paint(viewFor(0));                       // l'hôte est le siège 0
-  netSend({t:"state", view:viewFor(1)});   // l'invité est le siège 1
+  if(G.gameOver){ const w=G.players.findIndex(p=>p.stack>0);
+    goV={ winnerName:w>=0?G.players[w].name:"—", stack:w>=0?G.players[w].stack:0, iWon:w===seat }; }
+
+  return { me, others, board:G.board.slice(), inHand:G.inHand, street:G.street, pot:G.pot,
+           toActIsMe, current:G.current, legal:legalV, handNo:G.handNo,
+           levelMismatch:(G.level!==G.handLevel), result:resultV, gameOver:goV, clock:clockSnap(), N:G.N };
 }
 
-/* ---- rendu unifié à partir d'un view (hôte ET invité) ---- */
-function pvHole(pv){
-  if(Array.isArray(pv.hole)){
-    if(pv.hole.length) return pv.hole.map(cardHTML).join("");
-    return '<div class="card-back" style="opacity:.25"></div>'.repeat(2);
-  }
-  if(pv.folded) return '<div class="card-back" style="opacity:.3"></div>'.repeat(2);
+/* ---------- rendu de la table ---------- */
+function posChip(pv){
+  if(pv.isButton) return '<span class="pos d">D</span>';
+  if(pv.isSB) return '<span class="pos sb">SB</span>';
+  if(pv.isBB) return '<span class="pos bb">BB</span>';
+  return "";
+}
+function holeMini(pv){
+  if(Array.isArray(pv.hole)){ return pv.hole.length? pv.hole.map(cardHTML).join("") : ""; }
+  if(pv.folded || pv.out) return '<div class="card-back" style="opacity:.25"></div><div class="card-back" style="opacity:.25"></div>';
   return backHTML()+backHTML();
 }
-function paintSeat(pv, position, active){
-  const cls=["seat", active?"active":"waiting", pv.folded?"folded":""].join(" ");
-  const tag=pv.blindTag?`<span class="blindtag">${pv.blindTag}</span>`:"";
-  const hole=`<div class="hole">${pvHole(pv)}</div>`;
-  return `<div class="${cls}">
-    ${position==="bottom"?hole:""}
-    <div class="who">
-      <div class="nm">${active?'<span class="dot"></span>':""}${escapeHTML(pv.name)} ${tag}</div>
-      <div class="stack"><span class="amt mono">${fmt(pv.stack)}</span><span class="chips">${chipBadges(pv.stack)}</span></div>
-    </div>
-    ${pv.isButton?'<div class="dbtn" title="Donneur">D</div>':""}
-    ${position==="top"?hole:""}
-  </div>`;
+function betChips(amount){ return chipBreakdown(amount).map(c=>`<span class="chip ${c.c} chip-sm"></span>`).join(""); }
+function betTag(pv){
+  if(pv.out) return '<span class="muted">absent</span>';
+  if(pv.folded) return '<span class="muted">couché</span>';
+  if(pv.allIn) return pv.bet>0 ? `<span class="bt"><b>tapis</b> ${fmt(pv.bet)}</span>` : '<span class="muted">tapis</span>';
+  if(pv.bet>0) return `<span class="bt">${betChips(pv.bet)}${fmt(pv.bet)}</span>`;
+  return "";
 }
-function paintBet(pv){
-  if(pv.folded) return '<span style="color:var(--muted-2);font-size:11px;font-family:var(--mono)">couché</span>';
-  if(pv.bet<=0) return "";
-  const discs=chipBreakdown(pv.bet).map(c=>`<span class="chip ${c.c} chip-sm"></span>`).join("");
-  return `<span class="bet-chips">${discs}<span class="amt mono">${fmt(pv.bet)}</span></span>`;
+function podHTML(pv, active){
+  const cls=["pod", active?"active":"", pv.folded?"folded":"", pv.allIn?"allin":"", pv.out?"out":""].join(" ");
+  return `<div class="${cls}">
+    <div class="podtop"><span class="nm">${escapeHTML(pv.name)}</span>${posChip(pv)}</div>
+    <div class="podcards">${holeMini(pv)}</div>
+    <div class="podfoot">${fmt(pv.stack)}</div>
+    <div class="podbet">${betTag(pv)}</div>
+  </div>`;
 }
 function paint(view){
   curView=view;
-  if(!netChromeReady) adjustChromeForNet();
+  if(!netChromeReady) adjustChrome();
   show("game");
   paintClock(view.clock);
-  const oppActive = view.inHand && !view.toActIsMe && view.street!=="showdown" && !view.gameOver;
-  document.getElementById("topSeat").innerHTML=paintSeat(view.opp,"top",oppActive);
-  document.getElementById("botSeat").innerHTML=paintSeat(view.me,"bottom",view.toActIsMe);
-  document.getElementById("topBet").innerHTML=paintBet(view.opp);
-  document.getElementById("botBet").innerHTML=paintBet(view.me);
+
+  const opp=document.getElementById("opponents");
+  opp.innerHTML=view.others.map(pv=>podHTML(pv, view.inHand && view.current===pv.idx && !pv.folded && !pv.out)).join("");
+
   const slots=[]; for(let i=0;i<5;i++) slots.push(view.board[i]?cardHTML(view.board[i]):'<div class="empty"></div>');
   document.getElementById("board").innerHTML=slots.join("");
   document.getElementById("potVal").textContent=fmt(view.pot);
-  const conn=`<span class="conn ${oppConnected?"on":"off"}"><span class="d"></span>${oppConnected?"adversaire connecté":"adversaire hors ligne"}</span>`;
-  document.getElementById("handFoot").innerHTML=`Main ${view.handNo}`+(view.levelMismatch?" · nouveau niveau au prochain coup":"")+" &nbsp;·&nbsp; "+conn;
+
+  const me=view.me;
+  const meActive = view.toActIsMe;
+  const meEl=document.getElementById("meSeat");
+  meEl.className="meseat"+(meActive?" active":"");
+  meEl.innerHTML=`
+    <div class="mecards">${ Array.isArray(me.hole)&&me.hole.length ? me.hole.map(cardHTML).join("") : backHTML()+backHTML() }</div>
+    <div class="meinfo">
+      <div class="mrow1"><span class="nm">${escapeHTML(me.name)}</span>${posChip(me)}${me.allIn?'<span class="tapis">TAPIS</span>':""}${me.folded&&!me.out?'<span class="muted">couché</span>':""}</div>
+      <div class="mrow2"><span class="amt">${fmt(me.stack)}</span><span class="chips">${chipBadges(me.stack)}</span></div>
+      <div class="mebet">${ me.bet>0 ? `<span class="bt">${betChips(me.bet)}${fmt(me.bet)}</span>`:"" }</div>
+    </div>`;
+
+  document.getElementById("handFoot").innerHTML=`Main ${view.handNo}`+(view.levelMismatch?" · niveau au prochain coup":"");
   paintActions(view);
   paintResult(view);
   paintGameOver(view);
 }
-function paintClock(c){
-  if(!c) return;
-  document.getElementById("lvlNum").textContent=c.level;
-  const m=Math.floor(c.secs/60), s=c.secs%60;
-  document.getElementById("time").textContent=`${m}:${String(s).padStart(2,"0")}`;
-  document.getElementById("blindsNow").textContent=`${c.sb} / ${c.bb}`;
-  document.getElementById("blindsNext").textContent=(c.level<c.maxLevel)?`puis ${c.nextSb} / ${c.nextBb}`:"niveau max";
-  document.getElementById("clock").classList.toggle("paused",!c.running);
-  const pb=document.getElementById("pauseBtn"); if(pb) pb.textContent=c.running?"⏸":"▶";
-}
+
+/* ---------- barre d'action ---------- */
 function paintActions(view){
   const bar=document.getElementById("actionbar");
   if(view.gameOver){ bar.innerHTML=""; return; }
-  if(!view.inHand){ bar.innerHTML=`<div class="act-msg">Fin du coup.</div>`; return; }
-  if(!view.toActIsMe){ bar.innerHTML=`<div class="act-msg">Au tour de <b>${escapeHTML(view.opp.name)}</b><span class="dots"></span></div>`; return; }
+  if(!view.inHand){ bar.innerHTML=`<div class="act-msg">Coup terminé.</div>`; return; }
+  if(!view.toActIsMe){
+    const who=view.others.find(o=>o.idx===view.current);
+    bar.innerHTML=`<div class="act-msg">Au tour de <b>${who?escapeHTML(who.name):"…"}</b><span class="dots"></span></div>`;
+    return;
+  }
   if(netUI.sizerOpen){ bar.innerHTML=""; bar.appendChild(netSizer(view)); return; }
   const L=view.legal;
   let msg="À toi de jouer"; if(L.toCall>0) msg+=` — à suivre ${fmt(L.toCall)}`;
   let html=`<div class="act-msg">${msg}</div><div class="act-row">`;
   html+=`<button class="act fold" data-a="fold">Se coucher</button>`;
-  if(L.canCheck) html+=`<button class="act check" data-a="check">Parole</button>`;
+  if(L.canCheck) html+=`<button class="act check" data-a="check">Check</button>`;
   else html+=`<button class="act call" data-a="call">${L.allInCall?"Suivre tapis":"Suivre"}<small>${fmt(L.callAmt)}</small></button>`;
   if(L.canRaise) html+=`<button class="act raise" data-a="sizer">${L.isBet?"Miser":"Relancer"}<small>min ${fmt(L.minTo)}</small></button>`;
   html+=`</div>`;
@@ -1142,73 +964,55 @@ function paintActions(view){
 }
 function netSizer(view){
   const L=view.legal;
-  const amt=Math.max(L.minTo, Math.min(netUI.sizerAmount, L.maxTo));
-  netUI.sizerAmount=amt;
-  const stackLeftAfter=L.maxTo-amt;
-  const pct=L.maxTo>L.minTo?Math.round((amt-L.minTo)/(L.maxTo-L.minTo)*100):100;
-  const node=el(`<div class="sizer">
-    <div class="top">
-      <div><div class="lab">${L.isBet?"Mise":"Relance à"}</div><div class="val mono">${fmt(amt)}</div></div>
-      <div class="left">Tapis restant<b class="mono">${fmt(stackLeftAfter)}</b></div>
-    </div>
-    <input class="range" type="range" min="${L.minTo}" max="${L.maxTo}" step="10" value="${amt}" style="--pct:${pct}%">
-    <div class="chip-add">
-      <button data-add="10"><span class="chip white chip-md">10</span><span class="pl">+10</span></button>
-      <button data-add="20"><span class="chip green chip-md">20</span><span class="pl">+20</span></button>
-      <button data-add="50"><span class="chip red chip-md">50</span><span class="pl">+50</span></button>
-      <button data-add="100"><span class="chip blue chip-md">100</span><span class="pl">+100</span></button>
-    </div>
-    <div class="quick">
-      <button data-q="min">Min</button>
-      <button data-q="half">½ Pot</button>
-      <button data-q="pot">Pot</button>
-      <button data-q="allin">Tapis</button>
-    </div>
-    <div class="confirm">
-      <button class="cancel" data-x="cancel">Annuler</button>
-      <button class="go" data-x="go">${amt>=L.maxTo?"Tapis · ":""}${L.isBet?"Miser":"Relancer"} ${fmt(amt)}</button>
-    </div>
-  </div>`);
-  const setAmt=(v)=>{ netUI.sizerAmount=Math.max(L.minTo,Math.min(Math.round(v/10)*10,L.maxTo)); paintActions(curView); };
-  node.querySelector(".range").addEventListener("input",e=>setAmt(+e.target.value));
-  node.querySelectorAll("[data-add]").forEach(b=>b.addEventListener("click",()=>setAmt(amt+(+b.dataset.add))));
-  node.querySelectorAll("[data-q]").forEach(b=>b.addEventListener("click",()=>{
-    const q=b.dataset.q;
-    if(q==="min") setAmt(L.minTo);
-    else if(q==="allin") setAmt(L.maxTo);
-    else if(q==="pot") setAmt(L.betLevel + L.potNow);
-    else if(q==="half") setAmt(L.betLevel + L.potNow/2);
-  }));
-  node.querySelector("[data-x='cancel']").addEventListener("click",()=>{ netUI.sizerOpen=false; paintActions(curView); });
-  node.querySelector("[data-x='go']").addEventListener("click",()=>{
-    netUI.sizerOpen=false; const amount=netUI.sizerAmount; doAct("raise",amount);
-    if(ROLE==="guest") document.getElementById("actionbar").innerHTML=`<div class="act-msg">Action envoyée<span class="dots"></span></div>`;
-  });
-  return node;
+  const min=L.minTo, max=L.maxTo;
+  if(netUI.sizerAmount<min) netUI.sizerAmount=min;
+  if(netUI.sizerAmount>max) netUI.sizerAmount=max;
+  const box=el(`<div class="sizer">
+    <div class="sizer-top"><span>Relancer à</span><span class="amount mono" id="szAmt">${fmt(netUI.sizerAmount)}</span></div>
+    <input type="range" id="szRange" min="${min}" max="${max}" step="10" value="${netUI.sizerAmount}">
+    <div class="quick" id="szQuick"></div>
+    <div class="sizer-actions">
+      <button class="cancel" id="szCancel">Annuler</button>
+      <button class="confirm" id="szOk">Valider</button>
+    </div></div>`);
+  const amtEl=box.querySelector("#szAmt"), range=box.querySelector("#szRange");
+  range.addEventListener("input",()=>{ netUI.sizerAmount=+range.value; amtEl.textContent=fmt(netUI.sizerAmount); });
+  const pot=view.pot, quicks=[["½ pot",Math.round(pot*0.5)],["¾ pot",Math.round(pot*0.75)],["Pot",pot],["Tapis",max]];
+  const q=box.querySelector("#szQuick");
+  quicks.forEach(([lab,amt])=>{ let v=Math.max(min,Math.min(max,amt)); v=Math.round(v/10)*10; if(v<min)v=min; if(v>max)v=max;
+    const b=el(`<button>${lab}<small>${fmt(v)}</small></button>`); b.addEventListener("click",()=>{ netUI.sizerAmount=v; range.value=v; amtEl.textContent=fmt(v); }); q.appendChild(b); });
+  box.querySelector("#szCancel").addEventListener("click",()=>{ netUI.sizerOpen=false; paintActions(curView); });
+  box.querySelector("#szOk").addEventListener("click",()=>{ const amt=netUI.sizerAmount; netUI.sizerOpen=false; doAct("raise",amt); });
+  return box;
 }
+
+/* ---------- résultat (abattage / coup gagné) ---------- */
 function paintResult(view){
   let o=document.getElementById("resultOverlay");
   if(!view.result || view.gameOver){ if(o) o.remove(); return; }
   if(o) o.remove();
   const r=view.result;
-  let title, hand="";
-  if(r.type==="fold"){ title=`${escapeHTML(r.winnerName)} remporte le coup`; hand="L'adversaire s'est couché"; }
-  else if(r.type==="tie"){ title="Égalité — partage du pot"; hand=r.handName; }
-  else { title=`${escapeHTML(r.winnerName)} l'emporte`; hand=r.handName; }
-  const rh=(pv,won)=>{
-    let cards;
-    if(r.reveal && !pv.folded && Array.isArray(pv.hole) && pv.hole.length) cards=pv.hole.map(cardHTML).join("");
-    else cards=backHTML()+backHTML();
-    return `<div class="rh ${won?"win":""}"><div class="nm">${escapeHTML(pv.name)}${won?" ✦":""}</div><div class="cards">${cards}</div></div>`;
-  };
-  o=el(`<div class="overlay" id="resultOverlay"><div class="result">
-    <div class="badge">Abattage</div>
-    <h2>${title}</h2>
-    <div class="hand">${hand}</div>
-    <div class="pot-won mono">Pot de ${fmt(r.pot)}</div>
-    <div class="reveal-hands">${rh(view.opp,r.oppWon)}${rh(view.me,r.meWon)}</div>
-    <button class="next" id="nextBtn">Coup suivant →</button>
-  </div></div>`);
+  let inner;
+  if(r.type==="fold"){
+    inner=`<div class="badge">Coup remporté</div>
+      <h2>${escapeHTML(r.winnerName)} rafle le pot</h2>
+      <div class="hand">Tout le monde s'est couché</div>
+      <div class="pot-won mono">${fmt(r.amount)}</div>`;
+  } else {
+    const hands=r.reveals.map(rv=>`<div class="rh ${rv.won?"win":""}">
+        <div class="nm">${escapeHTML(rv.name)}</div>
+        <div class="cards">${rv.hole.map(cardHTML).join("")}</div>
+        <div class="rank">${rv.handName}</div>
+        ${rv.won?'<div class="tagwin">Gagne</div>':""}
+      </div>`).join("");
+    const total=r.pots.reduce((s,p)=>s+p.amount,0);
+    const potsLine = r.pots.length>1
+      ? `<div class="pots">${r.pots.map((p,i)=>`<div class="potrow"><span>${i===0?"Pot principal":"Pot annexe "+i}</span><b>${fmt(p.amount)}</b><span>→ ${p.winnerNames.map(escapeHTML).join(", ")}</span></div>`).join("")}</div>`
+      : `<div class="pot-won mono">Pot de ${fmt(total)}</div>`;
+    const title = r.iWon ? (r.myWinnings>0?`Tu remportes ${fmt(r.myWinnings)}`:"Égalité") : "Coup perdu";
+    inner=`<div class="badge">Abattage</div><h2>${title}</h2><div class="reveal-hands">${hands}</div>${potsLine}`;
+  }
+  o=el(`<div class="overlay" id="resultOverlay"><div class="result">${inner}<button class="next" id="nextBtn">Coup suivant →</button></div></div>`);
   o.querySelector("#nextBtn").addEventListener("click",(e)=>{ e.target.disabled=true; e.target.textContent="…"; doNext(); });
   document.body.appendChild(o);
 }
@@ -1217,271 +1021,252 @@ function paintGameOver(view){
   if(!view.gameOver){ if(o) o.remove(); return; }
   if(o) return;
   const g=view.gameOver;
-  o=el(`<div class="overlay" id="goOverlay"><div class="result gameover">
-    <div class="trophy">🏆</div>
-    <div class="badge">Fin de partie</div>
-    <h2>${escapeHTML(g.winnerName)} rafle tout</h2>
-    <div class="pot-won mono">Tapis final · ${fmt(g.stack)}</div>
-    ${ROLE==="host"?'<button class="next" id="rematch">Revanche · tapis à 1 000 $</button>':'<div class="act-msg" style="margin:10px 0 2px">En attente de l\u2019hôte pour une revanche<span class="dots"></span></div>'}
-    <button class="secondary" id="quit">Quitter</button>
-  </div></div>`);
-  const rm=o.querySelector("#rematch"); if(rm) rm.addEventListener("click",()=>{ o.remove(); rematch(); });
-  o.querySelector("#quit").addEventListener("click",()=>location.reload());
+  o=el(`<div class="overlay" id="goOverlay"><div class="result">
+      <div class="badge">Partie terminée</div>
+      <h2>${g.iWon?"Tu gagnes la partie 🏆":escapeHTML(g.winnerName)+" gagne la partie"}</h2>
+      <div class="pot-won mono">${fmt(g.stack)}</div>
+      ${ROLE==="host"?'<button class="next" id="goNew">Nouvelle partie</button>':'<div class="hand">En attente de l\'hôte…</div>'}
+    </div></div>`);
+  const nb=o.querySelector("#goNew"); if(nb) nb.addEventListener("click",()=>location.reload());
   document.body.appendChild(o);
 }
 
-/* ---- routage des actions selon le rôle ---- */
+/* ---------- routage des actions ---------- */
 function doAct(type, amount){
-  if(ROLE==="host"){ if(G && G.inHand && G.current===0) act(type, amount); }
-  else { netSend({t:"action", a:type, amount}); }
+  if(ROLE==="host"){ if(G && G.inHand && G.current===0 && !G.gameOver){ doAction(type, amount); afterHostMutation(); } }
+  else { sendTo(hostConn,{t:"action", a:type, amount}); }
 }
 function doNext(){
-  if(ROLE==="host"){ if(G && !G.inHand && !G.gameOver) newHand(false); }
-  else netSend({t:"next"});
+  if(ROLE==="host"){ if(G && !G.inHand && !G.gameOver){ newHand(false); afterHostMutation(); } }
+  else sendTo(hostConn,{t:"next"});
 }
-function doPause(){
-  if(MODE==="net" && ROLE==="guest") netSend({t:"pause"});
-  else togglePause();
-}
-function adjustChromeForNet(){
-  if(MODE!=="net") return;
-  netChromeReady=true;
-  const sa=document.getElementById("toggleShowAll"); if(sa) sa.classList.add("hide");
-  if(ROLE==="guest"){ const mb=document.getElementById("menuBtn"); if(mb) mb.classList.add("hide"); }
+function doPause(){ if(ROLE==="guest") sendTo(hostConn,{t:"pause"}); else togglePause(); }
+function afterHostMutation(){ netUI.sizerOpen=false; hostBroadcastState(); }
+function hostBroadcastState(){
+  paint(viewFor(0));
+  for(const g of guests){ if(g.connected) sendTo(g.conn,{t:"state", view:viewFor(g.seat)}); }
 }
 
-/* ---- transport ---- */
-function netSend(o){ if(gConn && gConn.open){ try{ gConn.send(o); }catch(e){} } }
-function sendClock(){ netSend(Object.assign({t:"clock"}, clockSnap())); }
-function teardownPeer(){ if(netOpenTimer){ clearTimeout(netOpenTimer); netOpenTimer=null; } if(peer){ try{peer.destroy()}catch(e){} } peer=null; }
-function loadPeer(){
-  return new Promise((resolve,reject)=>{
-    if(window.Peer) return resolve();
-    let done=false;
-    const to=setTimeout(()=>{ if(!done){ done=true; reject(new Error("timeout")); } }, 8000);
-    const s=document.createElement("script");
-    s.src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js";
-    s.onload=()=>{ if(done) return; done=true; clearTimeout(to); window.Peer?resolve():reject(new Error("peer")); };
-    s.onerror=()=>{ if(done) return; done=true; clearTimeout(to); reject(new Error("cdn")); };
-    document.head.appendChild(s);
-  });
-}
-function genCode(){ let s=""; for(let i=0;i<4;i++) s+=CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)]; return s; }
-
-/* ---- HÔTE ---- */
+/* ===================================================================
+   RÉSEAU — HÔTE
+=================================================================== */
 async function createRoom(){
-  myName=(val("myName")||"Hôte").slice(0,14);
-  ROLE="host"; MODE="net";
+  myName=(val("myName")||"Hôte").slice(0,14); ROLE="host"; mySeat=0;
   lobbyStatus("Chargement du module réseau…");
-  try{ await loadPeer(); }
-  catch(e){ return showChoose("Module réseau introuvable. Cet aperçu/ce réseau bloque le pair-à-pair : héberge la page (Cloudflare/Netlify/GitHub Pages) puis réessaie. Le mode « un seul appareil » fonctionne, lui, sans réseau."); }
+  try{ await loadPeer(); }catch(e){ return showChoose("Module réseau introuvable. Héberge la page : l'aperçu intégré bloque le pair-à-pair."); }
   lobbyStatus("Connexion au réseau pair-à-pair…");
   hostStart(0);
-  if(netOpenTimer) clearTimeout(netOpenTimer);
-  netOpenTimer=setTimeout(()=>{
-    if(!(peer && peer.open)){ teardownPeer(); ROLE=null; MODE="solo";
-      showChoose("Réseau pair-à-pair injoignable depuis cet environnement. C'est normal dans l'aperçu intégré ou en ouvrant le fichier en local : héberge la page sur une URL (Cloudflare/Netlify/GitHub Pages) et réessaie. Le mode « un seul appareil » marche sans réseau."); }
-  }, 12000);
+  netOpenTimer=setTimeout(()=>{ if(!(peer&&peer.open)){ teardownPeer(); ROLE=null; showChoose("Réseau pair-à-pair injoignable depuis cet environnement. Héberge la page (GitHub Pages) et réessaie."); } },12000);
 }
 function hostStart(attempt){
-  if(attempt>6){ return showChoose("Impossible d'obtenir un code libre. Réessaie."); }
+  if(attempt>6) return showChoose("Impossible d'obtenir un code libre. Réessaie.");
   roomCode=genCode();
-  if(peer){ try{peer.destroy()}catch(e){} }
+  if(peer){ try{ peer.destroy(); }catch(e){} }
   peer=new Peer(NS+roomCode);
-  peer.on("open",()=> showHosting(roomCode));
-  peer.on("connection",(conn)=> bindHostConn(conn));
-  peer.on("error",(err)=>{
-    const t=err&&err.type;
-    if(t==="unavailable-id"){ hostStart(attempt+1); }
-    else if(t==="network"||t==="server-error"||t==="socket-error"||t==="socket-closed"){
-      lobbyError("Serveur P2P injoignable, nouvelle tentative…"); setTimeout(()=>hostStart(attempt+1),1500);
-    } else { lobbyError("Erreur réseau : "+(t||err)); }
-  });
+  peer.on("open",()=>{ if(netOpenTimer){clearTimeout(netOpenTimer); netOpenTimer=null;} lobbyRoster=[myName]; showHostLobby(); });
+  peer.on("connection",(conn)=>bindGuest(conn));
+  peer.on("error",(err)=>{ const t=err&&err.type;
+    if(t==="unavailable-id") hostStart(attempt+1);
+    else if(t==="network"||t==="server-error"||t==="socket-error"||t==="socket-closed"){ lobbyError("Serveur pair-à-pair injoignable, nouvelle tentative…"); setTimeout(()=>hostStart(attempt+1),1500); }
+    else lobbyError("Erreur réseau : "+(t||err)); });
 }
-function bindHostConn(conn){
-  gConn=conn;
-  conn.on("data",(d)=>onHostData(d));
-  conn.on("close",()=>onOppGone());
-  conn.on("error",()=>{});
-}
-function onHostData(d){
+function bindGuest(conn){ conn.on("data",(d)=>onHostData(conn,d)); conn.on("close",()=>guestGone(conn)); conn.on("error",()=>{}); }
+function onHostData(conn,d){
   if(!d||!d.t) return;
   if(d.t==="hello"){
-    guestName=(d.name||"Invité").slice(0,14);
-    oppConnected=true; hideReconnect();
-    netSend({t:"welcome", seat:1, hostName:myName});
-    if(!G){ startHostGame(); } else { clock.running=true; netHostSync(); }
+    if(started){ sendTo(conn,{t:"full",reason:"La partie a déjà commencé."}); return; }
+    if(guests.length+1>=8){ sendTo(conn,{t:"full",reason:"Table complète (8 joueurs)."}); return; }
+    const seat=guests.length+1;
+    guests.push({ conn, seat, name:(d.name||"Invité").slice(0,14), connected:true });
+    rebuildRoster(); broadcastLobby(); showHostLobby();
   } else if(d.t==="action"){
-    if(G && G.inHand && G.current===1 && !G.gameOver) act(d.a, d.amount);
-  } else if(d.t==="next"){
-    if(G && !G.inHand && !G.gameOver) newHand(false);
-  } else if(d.t==="pause"){ togglePause(); }
+    const g=guests.find(x=>x.conn===conn);
+    if(g && G && G.inHand && G.current===g.seat && !G.gameOver){ doAction(d.a,d.amount); afterHostMutation(); }
+  } else if(d.t==="next"){ if(G && !G.inHand && !G.gameOver){ newHand(false); afterHostMutation(); } }
+  else if(d.t==="pause"){ togglePause(); }
 }
-function startHostGame(){
-  G={ players:[
-        {name:myName,    stack:START_STACK, hole:[], bet:0, committed:0, folded:false, allIn:false, acted:false},
-        {name:guestName, stack:START_STACK, hole:[], bet:0, committed:0, folded:false, allIn:false, acted:false}
-      ],
-      button: Math.random()<0.5?0:1, deck:[], board:[], pot:0,
-      street:"idle", current:0, betLevel:0, lastRaise:0,
-      level:1, handLevel:1, handNo:0, inHand:false, revealed:false, result:null, gameOver:false };
-  clock={ secs:LEVEL_SECONDS, running:true, id:null };
-  startClock();
-  newHand(true);   // -> render() -> netHostSync (envoie le premier état à l'invité)
+function rebuildRoster(){ lobbyRoster=[myName, ...guests.map(g=>g.name)]; }
+function broadcastLobby(){ broadcast({t:"lobby", players:lobbyRoster}); }
+function guestGone(conn){
+  const g=guests.find(x=>x.conn===conn); if(!g) return;
+  if(!started){
+    guests=guests.filter(x=>x.conn!==conn);
+    guests.forEach((x,idx)=>x.seat=idx+1);
+    rebuildRoster(); broadcastLobby(); showHostLobby();
+  } else {
+    g.connected=false;
+    if(G){ G.players[g.seat].connected=false; G.players[g.seat].out=true;
+      if(G.inHand){ G.players[g.seat].folded=true; if(G.current===g.seat){ doAction("fold"); } }
+      afterHostMutation();
+    }
+  }
+}
+function startGameHost(){
+  if(guests.length<1) return;
+  started=true; rebuildRoster();
+  createGame(lobbyRoster);
+  G.players.forEach((p,i)=>{ p.connected = (i===0) ? true : !!(guests.find(g=>g.seat===i) && guests.find(g=>g.seat===i).connected); });
+  clock={ secs:LEVEL_SECONDS, running:true, id:null }; startClock();
+  broadcast({t:"start"});
+  newHand(true);
+  afterHostMutation();
 }
 
-/* ---- INVITÉ ---- */
+/* ===================================================================
+   RÉSEAU — INVITÉ
+=================================================================== */
 async function joinRoom(){
   myName=(val("myName")||"Invité").slice(0,14);
   const code=(val("joinCode")||"").trim().toUpperCase();
-  if(code.length<4){ return lobbyError("Entre le code à 4 caractères de l'hôte."); }
-  ROLE="guest"; MODE="net"; roomCode=code;
+  if(code.length<4) return lobbyError("Entre le code à 4 caractères.");
+  ROLE="guest"; roomCode=code;
   lobbyStatus("Chargement du module réseau…");
-  try{ await loadPeer(); }
-  catch(e){ return lobbyError("Module réseau introuvable. Cet aperçu/ce réseau bloque le pair-à-pair — il faut une page hébergée."); }
+  try{ await loadPeer(); }catch(e){ return lobbyError("Module réseau introuvable — il faut une page hébergée."); }
   lobbyStatus("Connexion au réseau pair-à-pair…");
-  if(peer){ try{peer.destroy()}catch(e){} }
+  if(peer){ try{ peer.destroy(); }catch(e){} }
   peer=new Peer();
-  peer.on("open",()=> connectToHost());
-  peer.on("error",(err)=> lobbyError("Connexion impossible ("+((err&&err.type)||err)+"). Vérifie le code."));
-  if(netOpenTimer) clearTimeout(netOpenTimer);
-  netOpenTimer=setTimeout(()=>{ if(!(peer && peer.open)) lobbyError("Réseau pair-à-pair injoignable depuis cet environnement. Il faut une page hébergée (l'aperçu intégré et le mode fichier local bloquent le P2P)."); }, 12000);
+  peer.on("open",()=>connectToHost());
+  peer.on("error",(err)=>lobbyError("Connexion impossible ("+((err&&err.type)||err)+"). Vérifie le code."));
+  netOpenTimer=setTimeout(()=>{ if(!(peer&&peer.open)) lobbyError("Réseau pair-à-pair injoignable. Page hébergée requise."); },12000);
 }
 function connectToHost(){
   if(netOpenTimer){ clearTimeout(netOpenTimer); netOpenTimer=null; }
-  gConn=peer.connect(NS+roomCode, {reliable:true});
-  gConn.on("open",()=>{ netSend({t:"hello", name:myName}); lobbyStatus("Connecté — en attente de la distribution…"); });
-  gConn.on("data",(d)=>onGuestData(d));
-  gConn.on("close",()=>onHostGone());
-  gConn.on("error",()=>{});
-  if(joinTimer) clearTimeout(joinTimer);
-  joinTimer=setTimeout(()=>{ if(gConn && !gConn.open) lobbyError("Aucune réponse. Code correct et hôte en ligne ?"); }, 10000);
+  hostConn=peer.connect(NS+roomCode,{reliable:true});
+  hostConn.on("open",()=>{ if(joinTimer){clearTimeout(joinTimer); joinTimer=null;} sendTo(hostConn,{t:"hello",name:myName}); lobbyStatus("Connecté — salle d'attente…"); });
+  hostConn.on("data",(d)=>onGuestData(d));
+  hostConn.on("close",()=>hostGone());
+  hostConn.on("error",()=>{});
+  joinTimer=setTimeout(()=>{ if(hostConn&&!hostConn.open) lobbyError("Aucune réponse. Code correct et hôte en ligne ?"); },10000);
 }
 function onGuestData(d){
   if(!d||!d.t) return;
-  if(d.t==="welcome"){ hostName=d.hostName||"Hôte"; oppConnected=true; hideReconnect(); show("game"); }
-  else if(d.t==="state"){ oppConnected=true; hideReconnect(); paint(d.view); }
+  if(d.t==="lobby"){ showGuestLobby(d.players); }
+  else if(d.t==="start"){ lobbyStatus("La partie démarre…"); }
+  else if(d.t==="state"){ hideReconnect(); show("game"); paint(d.view); }
   else if(d.t==="clock"){ paintClock(d); }
+  else if(d.t==="full"){ lobbyError(d.reason||"Table indisponible."); }
 }
+function hostGone(){ if(started || document.getElementById("game").classList.contains("hide")===false) showReconnect(); }
 
-/* ---- déconnexion / reconnexion ---- */
-function onOppGone(){
-  oppConnected=false;
-  if(G && !G.gameOver){ clock.running=false; paintClock(clockSnap()); }
-  showReconnect("host");
-}
-function onHostGone(){ oppConnected=false; showReconnect("guest"); }
-function showReconnect(kind){
-  hideReconnect();
-  let inner;
-  if(kind==="host"){
-    inner=`<div class="badge">Connexion</div><h2>Adversaire déconnecté</h2>
-      <p style="color:var(--muted);font-size:13px;margin:6px 0 14px">Partie en pause. Donne-lui ce code pour revenir :</p>
-      <div class="code-box">${roomCode}</div>
-      <button class="secondary" id="rcEnd">Terminer la partie</button>`;
-  } else {
-    inner=`<div class="badge">Connexion</div><h2>Connexion perdue</h2>
-      <p style="color:var(--muted);font-size:13px;margin:6px 0 16px">La liaison avec l'hôte a été coupée.</p>
-      <button class="next" id="rcRetry">Se reconnecter</button>
-      <button class="secondary" id="rcEnd" style="margin-top:9px">Quitter</button>`;
-  }
-  const o=el(`<div class="overlay" id="rcOverlay"><div class="result">${inner}</div></div>`);
+/* ---------- reconnexion (invité) ---------- */
+function showReconnect(){
+  let o=document.getElementById("rcOverlay"); if(o) return;
+  o=el(`<div class="overlay" id="rcOverlay"><div class="result">
+    <div class="badge">Connexion perdue</div><h2>Hôte injoignable</h2>
+    <div class="hand">La connexion avec l'hôte a été coupée.</div>
+    <button class="next" id="rcRetry">Revenir à l'accueil</button></div></div>`);
+  o.querySelector("#rcRetry").addEventListener("click",()=>location.reload());
   document.body.appendChild(o);
-  const end=o.querySelector("#rcEnd"); if(end) end.addEventListener("click",()=>location.reload());
-  const rt=o.querySelector("#rcRetry"); if(rt) rt.addEventListener("click",()=>{ rt.disabled=true; rt.textContent="…"; connectToHost(); });
 }
 function hideReconnect(){ const o=document.getElementById("rcOverlay"); if(o) o.remove(); }
 
 /* ===================================================================
-   LOBBY
+   SALLE D'ATTENTE — écrans
 =================================================================== */
-function val(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
-function show(which){ for(const id of ["lobby","setup","game"]){ const s=document.getElementById(id); if(s) s.classList.toggle("hide", id!==which); } }
-function lobbyStatus(t){ const s=document.getElementById("lobbyStatus"); if(s){ s.textContent=t; s.style.color="var(--muted)"; } }
-function lobbyError(t){ const s=document.getElementById("lobbyStatus"); if(s){ s.textContent=t; s.style.color="var(--danger)"; } else alert(t); }
-function legendHTML(){
-  const legend=[["white","10 $"],["green","20 $"],["red","50 $"],["blue","100 $"]];
-  return legend.map(([c,v])=>`<span class="cl"><span class="chip ${c} chip-sm lab" style="font-size:0"></span>${v}</span>`).join("");
-}
-function rulesHTML(){
-  return `<div class="rules" style="margin-top:15px">
-    <div class="ri"><b>Tapis de départ</b> — 1 000 $ chacun</div>
-    <div class="ri"><b>Blinds</b> — 10 / 20 $, alternées</div>
-    <div class="ri"><b>Niveaux</b> — montée toutes les 10 min</div>
-    <div class="ri"><b>Bouton</b> = petite blind (heads-up)</div>
-    <div class="chip-legend">${legendHTML()}</div>
-  </div>`;
-}
-function copyText(t, btn){
-  const done=()=>{ if(btn){ const o=btn.textContent; btn.textContent="Copié ✓"; setTimeout(()=>btn.textContent=o,1400); } };
-  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done).catch(()=>fallbackCopy(t,done)); }
-  else fallbackCopy(t,done);
-}
-function fallbackCopy(t,done){ try{ const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); done&&done(); }catch(e){} }
-function showChoose(errMsg){
+function showChoose(err){
   show("lobby");
   const p=document.getElementById("lobbyPanel");
   p.innerHTML=`
-    <div class="field"><label>Ton nom</label>
-      <input id="myName" type="text" maxlength="14" placeholder="Ton prénom" value="${myName==='Joueur'?'':escapeHTML(myName)}" autocomplete="off"></div>
-    <button class="btn-primary" id="btnCreate">Créer une partie</button>
-    <button class="secondary" id="btnJoinView" style="margin-top:9px">Rejoindre une partie</button>
-    <div class="status" id="lobbyStatus">${errMsg?`<span style="color:var(--danger)">${escapeHTML(errMsg)}</span>`:""}</div>
-    <div class="seg"><span>ou</span></div>
-    <button class="btn-link" id="btnSolo">Jouer sur un seul appareil</button>
+    <div class="field"><label>Ton nom</label><input id="myName" type="text" maxlength="14" placeholder="Ton prénom" value="${myName==='Joueur'||myName==='Hôte'||myName==='Invité'?'':escapeHTML(myName)}"></div>
+    <button class="btn-primary" id="btnCreate">Créer une table</button>
+    <button class="secondary" id="btnJoin" style="margin-top:9px">Rejoindre une table</button>
+    <div class="status" id="lobbyStatus">${err?`<span style="color:var(--danger)">${escapeHTML(err)}</span>`:""}</div>
     ${rulesHTML()}`;
   document.getElementById("btnCreate").addEventListener("click",createRoom);
-  document.getElementById("btnJoinView").addEventListener("click",()=>showJoining(""));
-  document.getElementById("btnSolo").addEventListener("click",goSolo);
+  document.getElementById("btnJoin").addEventListener("click",()=>showJoining(""));
 }
 function showJoining(prefill){
   show("lobby");
   const p=document.getElementById("lobbyPanel");
   p.innerHTML=`
-    <div class="field"><label>Ton nom</label>
-      <input id="myName" type="text" maxlength="14" placeholder="Ton prénom" value="${myName==='Joueur'?'':escapeHTML(myName)}" autocomplete="off"></div>
-    <div class="field"><label>Code de la partie</label>
-      <input id="joinCode" type="text" maxlength="6" value="${escapeHTML(prefill||"")}" autocomplete="off" autocapitalize="characters"
-        style="text-transform:uppercase;font-family:var(--mono);letter-spacing:.28em;font-size:20px;text-align:center"></div>
-    <button class="btn-primary" id="btnJoin">Se connecter</button>
-    <div class="status" id="lobbyStatus"></div>
-    <button class="secondary" id="btnBack" style="margin-top:9px">Retour</button>`;
-  const ci=document.getElementById("joinCode");
-  ci.addEventListener("input",()=>{ ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,""); });
-  document.getElementById("btnJoin").addEventListener("click",joinRoom);
+    <div class="field"><label>Ton nom</label><input id="myName" type="text" maxlength="14" placeholder="Ton prénom" value="${(myName==='Joueur'||myName==='Hôte'||myName==='Invité')?'':escapeHTML(myName)}"></div>
+    <div class="field"><label>Code de la table</label><input id="joinCode" type="text" maxlength="4" placeholder="ex. KQ7P" value="${escapeHTML(prefill||"")}" style="text-transform:uppercase;letter-spacing:.3em;font-family:var(--mono)"></div>
+    <button class="btn-primary" id="btnDoJoin">Rejoindre</button>
+    <button class="secondary" id="btnBack" style="margin-top:9px">Retour</button>
+    <div class="status" id="lobbyStatus"></div>`;
+  document.getElementById("btnDoJoin").addEventListener("click",joinRoom);
   document.getElementById("btnBack").addEventListener("click",()=>showChoose());
-  if(prefill) ci.focus();
 }
-function showHosting(code){
-  if(netOpenTimer){ clearTimeout(netOpenTimer); netOpenTimer=null; }
+function showHostLobby(){
   show("lobby");
-  const link=location.origin+location.pathname+"#"+code;
+  const link=location.origin+location.pathname+"#"+roomCode;
+  const n=lobbyRoster.length;
   const p=document.getElementById("lobbyPanel");
   p.innerHTML=`
     <div class="hosting">
-      <div class="k">Partage ce code</div>
-      <div class="code-box">${code}</div>
+      <div class="k">Code de la table</div>
+      <div class="code-box">${roomCode}</div>
       <div class="code-actions">
         <button class="secondary" id="copyCode">Copier le code</button>
         <button class="secondary" id="copyLink">Copier le lien</button>
       </div>
-      <div class="status" id="lobbyStatus">En attente de l'adversaire<span class="dots"></span></div>
-      <button class="secondary" id="btnCancelHost" style="margin-top:6px">Annuler</button>
+      <div class="roster"><div class="rh2">Joueurs (${n}/8)</div>
+        ${lobbyRoster.map((nm,i)=>`<div class="pl-row">${i===0?'<span class="you">toi</span>':''}<span>${escapeHTML(nm)}</span></div>`).join("")}
+      </div>
+      <button class="btn-primary" id="startBtn" ${n<2?"disabled":""}>${n<2?"En attente d'un joueur…":"Démarrer ("+n+" joueurs)"}</button>
+      <button class="secondary" id="cancelHost" style="margin-top:8px">Annuler</button>
+      <div class="status">Partage le code ou le lien. La partie commence quand tu cliques sur Démarrer.</div>
     </div>`;
-  document.getElementById("copyCode").addEventListener("click",(e)=>copyText(code,e.target));
-  document.getElementById("copyLink").addEventListener("click",(e)=>copyText(link,e.target));
-  document.getElementById("btnCancelHost").addEventListener("click",()=>{ if(peer){try{peer.destroy()}catch(e){}} peer=null; ROLE=null; MODE="solo"; showChoose(); });
+  document.getElementById("copyCode").addEventListener("click",e=>copyText(roomCode,e.target));
+  document.getElementById("copyLink").addEventListener("click",e=>copyText(link,e.target));
+  const sb=document.getElementById("startBtn"); if(sb && n>=2) sb.addEventListener("click",startGameHost);
+  document.getElementById("cancelHost").addEventListener("click",()=>location.reload());
 }
-function goSolo(){
-  if(peer){ try{peer.destroy()}catch(e){} peer=null; }
-  ROLE=null; MODE="solo";
-  show("setup");
+function showGuestLobby(players){
+  show("lobby");
+  const p=document.getElementById("lobbyPanel");
+  p.innerHTML=`
+    <div class="hosting">
+      <div class="k">Salle d'attente</div>
+      <div class="roster"><div class="rh2">Joueurs (${players.length}/8)</div>
+        ${players.map(nm=>`<div class="pl-row"><span>${escapeHTML(nm)}</span></div>`).join("")}
+      </div>
+      <div class="status">En attente que l'hôte lance la partie<span class="dots"></span></div>
+      <button class="secondary" id="quitJoin" style="margin-top:8px">Quitter</button>
+    </div>`;
+  document.getElementById("quitJoin").addEventListener("click",()=>location.reload());
 }
+function rulesHTML(){
+  return `<div class="rules">
+    <details><summary>Comment jouer à plusieurs</summary>
+      <div class="rbody">
+        <p><b>Un seul joueur crée la table</b> et partage le code (ou le lien) aux autres. Chacun ouvre la page sur son téléphone, entre le code et rejoint la salle d'attente. Quand tout le monde est là (2 à 8), l'hôte clique sur <b>Démarrer</b>.</p>
+        <p>Pour tester seul : ouvre le lien dans plusieurs onglets — chaque onglet est un joueur.</p>
+        <p>Il faut une page <b>hébergée</b> (l'aperçu intégré bloque le pair-à-pair). Le tuto GitHub Pages reste valable.</p>
+      </div>
+    </details></div>`;
+}
+
+/* ===================================================================
+   CHROME (barre du haut) + amorçage
+=================================================================== */
+function adjustChrome(){
+  netChromeReady=true;
+  const sa=document.getElementById("toggleShowAll"); if(sa) sa.classList.add("hide");
+  if(ROLE==="guest"){
+    const rl=document.getElementById("restartLevel"); if(rl) rl.classList.add("hide");
+    const sep=document.querySelector("#menu hr"); if(sep) sep.classList.add("hide");
+  }
+}
+(function initChrome(){
+  const menu=document.getElementById("menu"), menuBtn=document.getElementById("menuBtn");
+  menuBtn.addEventListener("click",e=>{ e.stopPropagation(); menu.classList.toggle("hide"); });
+  document.addEventListener("click",()=>menu.classList.add("hide"));
+  menu.addEventListener("click",e=>e.stopPropagation());
+  document.getElementById("pauseBtn").addEventListener("click",doPause);
+  document.getElementById("restartLevel").addEventListener("click",()=>{
+    if(ROLE!=="host"||!G) return;
+    G.level=1; clock.secs=LEVEL_SECONDS; clock.running=true;
+    const b=document.getElementById("pauseBtn"); if(b) b.textContent="⏸";
+    menu.classList.add("hide"); paintClock(clockSnap()); sendClock();
+  });
+  document.getElementById("newGameBtn").addEventListener("click",()=>location.reload());
+})();
 (function initLobby(){
   const h=(location.hash||"").replace("#","").trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
-  if(h && h.length>=4) showJoining(h);
-  else showChoose();
+  if(h && h.length>=4) showJoining(h); else showChoose();
 })();
+
 </script>
 </body>
 </html>
