@@ -534,6 +534,13 @@
 .sz-actions .sz-ok:hover{ filter:brightness(1.05) }
 .sz-actions .sz-ok:active{ transform:translateY(1px) }
 
+/* overlays défilables si le contenu dépasse (écran de fin avec la dernière main) */
+.overlay{ overflow-y:auto; align-items:flex-start; justify-content:flex-start }
+.overlay>.result,.overlay>.gate{ margin:auto }
+.result.gameover .reveal-hands{ margin:10px 0 18px }
+.result.gameover .board-reveal{ margin-bottom:12px }
+.result.gameover .rlabel{ margin-top:4px }
+
 </style>
 </head>
 <body>
@@ -1149,13 +1156,26 @@ function paintGameOver(view){
   let o=document.getElementById("goOverlay");
   if(!view.gameOver){ if(o) o.remove(); return; }
   if(o) return;
-  const g=view.gameOver;
-  o=el(`<div class="overlay" id="goOverlay"><div class="result">
+  const g=view.gameOver, r=view.result;
+  const boardRow = (view.board && view.board.length) ? `<div class="board-reveal">${view.board.map(cardHTML).join("")}</div>` : "";
+  let handBlock="";
+  if(r && r.type==="showdown"){
+    const hands=r.reveals.map(rv=>`<div class="rh ${rv.won?"win":""}"><div class="nm">${escapeHTML(rv.name)}</div><div class="cards">${rv.hole.map(cardHTML).join("")}</div><div class="rank">${rv.handName}</div>${rv.won?'<div class="tagwin">Gagne</div>':""}</div>`).join("");
+    handBlock = `<div class="rlabel">Dernière main</div>${boardRow}<div class="reveal-hands">${hands}</div>`;
+  } else if(r && r.type==="fold" && boardRow){
+    handBlock = `<div class="rlabel">Dernière main</div>${boardRow}<div class="hand">${escapeHTML(r.winnerName)} a remporté le dernier coup</div>`;
+  }
+  const ctrl = ROLE==="host"
+    ? `<button class="next" id="goReplay">Rejouer (mêmes joueurs)</button><button class="secondary" id="goNew">Quitter</button>`
+    : `<div class="hand">En attente de l'hôte pour relancer une partie…</div>`;
+  o=el(`<div class="overlay" id="goOverlay"><div class="result gameover">
       <div class="badge">Partie terminée</div>
       <h2>${g.iWon?"Tu gagnes la partie 🏆":escapeHTML(g.winnerName)+" gagne la partie"}</h2>
-      <div class="pot-won mono">${fmt(g.stack)}</div>
-      ${ROLE==="host"?'<button class="next" id="goNew">Nouvelle partie</button>':'<div class="hand">En attente de l\'hôte…</div>'}
+      <div class="pot-won mono">${fmt(g.stack)} de jetons</div>
+      ${handBlock}
+      ${ctrl}
     </div></div>`);
+  const rb=o.querySelector("#goReplay"); if(rb) rb.addEventListener("click",(e)=>{ e.target.disabled=true; e.target.textContent="…"; doReplay(); });
   const nb=o.querySelector("#goNew"); if(nb) nb.addEventListener("click",()=>location.reload());
   document.body.appendChild(o);
 }
@@ -1169,6 +1189,7 @@ function doNext(){
   if(ROLE==="host"){ if(G && !G.inHand && !G.gameOver){ newHand(false); afterHostMutation(); } }
   else sendTo(hostConn,{t:"next"});
 }
+function doReplay(){ if(ROLE==="host") restartGameHost(); }
 function doPause(){ if(ROLE==="guest") sendTo(hostConn,{t:"pause"}); else togglePause(); }
 function afterHostMutation(){ netUI.sizerOpen=false; hostBroadcastState(); }
 function hostBroadcastState(){
@@ -1236,6 +1257,20 @@ function startGameHost(){
   createGame(lobbyRoster);
   G.players.forEach((p,i)=>{ p.connected = (i===0) ? true : !!(guests.find(g=>g.seat===i) && guests.find(g=>g.seat===i).connected); });
   clock={ secs:LEVEL_SECONDS, running:true, id:null }; startClock();
+  broadcast({t:"start"});
+  newHand(true);
+  afterHostMutation();
+}
+function restartGameHost(){
+  // relancer une nouvelle partie avec les joueurs encore connectés (sans repasser par le lien)
+  guests = guests.filter(g=>g.connected && g.conn && g.conn.open);
+  guests.forEach((g,i)=>g.seat=i+1);
+  if(guests.length<1){ location.reload(); return; }   // plus aucun joueur connecté : table neuve
+  rebuildRoster();
+  createGame(lobbyRoster);
+  G.players.forEach((p)=>{ p.connected=true; });
+  clock={ secs:LEVEL_SECONDS, running:true, id:null }; startClock();
+  const b=document.getElementById("pauseBtn"); if(b) b.textContent="⏸";
   broadcast({t:"start"});
   newHand(true);
   afterHostMutation();
