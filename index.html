@@ -482,6 +482,58 @@
 .table.nseat{ border-radius:50% / 50% }
 .table.nseat::after{ font-size:120px }
 
+/* ===================================================================
+   SIZER DE RELANCE — ergonomique / tactile
+=================================================================== */
+.sizer{ background:linear-gradient(180deg,#1a130d,#120d08); border:1px solid var(--rail-edge);
+  border-radius:18px; padding:16px 16px 18px; display:flex; flex-direction:column; gap:15px }
+.sizer .sz-head{ display:flex; align-items:center; justify-content:space-between; gap:12px }
+.sizer .sz-head .lab{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted) }
+.sizer .sz-head .val{ font-size:32px; font-weight:700; color:var(--bone); line-height:1 }
+.sizer .sz-head .val small{ font-size:.5em; color:var(--gold-soft); margin-left:3px; font-weight:600 }
+
+/* grosse barre ajustable */
+.sz-range{ padding:4px 2px 0 }
+.sz-slider{ -webkit-appearance:none; appearance:none; width:100%; height:14px; border-radius:999px;
+  background:linear-gradient(90deg, var(--gold-soft) 0%, var(--gold) var(--pct,0%), #2a2014 var(--pct,0%));
+  border:1px solid var(--rail-edge); outline:none; cursor:pointer }
+.sz-slider::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:34px; height:34px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,var(--gold-soft) 55%,var(--gold));
+  border:2px solid rgba(255,255,255,.55); box-shadow:0 3px 10px rgba(0,0,0,.6); cursor:pointer; margin-top:-11px }
+.sz-slider::-moz-range-thumb{ width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,.55);
+  background:radial-gradient(circle at 35% 30%,#fff,var(--gold-soft) 55%,var(--gold)); cursor:pointer }
+.sz-minmax{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:10.5px; color:var(--muted-2); margin-top:7px }
+
+/* jetons d'incrément +10 / +20 / +50 / +100 */
+.sz-chips{ display:flex; gap:8px }
+.sz-chips button{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 4px 9px;
+  border-radius:14px; border:1px solid var(--rail-edge); background:#130e08; color:var(--text);
+  transition:background .15s, transform .06s }
+.sz-chips button:hover{ background:#1c150d }
+.sz-chips button:active{ transform:translateY(1px) }
+.sz-chips button:disabled{ opacity:.3; pointer-events:none }
+.sz-chips .v{ font-family:var(--mono); font-size:12px; font-weight:700; color:var(--gold-soft) }
+
+/* fractions de pot */
+.sz-quick{ display:flex; gap:8px }
+.sz-quick button{ flex:1; padding:11px 4px; border-radius:12px; font-size:12.5px; font-weight:600; line-height:1.15;
+  border:1px solid var(--rail-edge); background:#130e08; color:var(--text); transition:background .15s, transform .06s }
+.sz-quick button small{ display:block; font-family:var(--mono); font-size:10.5px; color:var(--muted); margin-top:3px }
+.sz-quick button:hover{ background:#1c150d; color:var(--gold-soft) }
+.sz-quick button:active{ transform:translateY(1px) }
+
+/* deux gros boutons : Annuler (gauche) / Valider (droite) */
+.sz-actions{ display:flex; gap:12px; margin-top:3px }
+.sz-actions button{ padding:16px 10px; border-radius:14px; font-size:15.5px; font-weight:700; line-height:1; transition:transform .06s, filter .15s }
+.sz-actions .sz-cancel{ flex:1; border:1px solid var(--rail-edge); background:#150f09; color:var(--text) }
+.sz-actions .sz-cancel:hover{ background:#1d150d }
+.sz-actions .sz-cancel:active{ transform:translateY(1px) }
+.sz-actions .sz-ok{ flex:1.45; border:none; color:#241a0c;
+  background:linear-gradient(180deg,var(--gold-soft),var(--gold));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), 0 8px 20px -8px rgba(201,162,75,.6) }
+.sz-actions .sz-ok:hover{ filter:brightness(1.05) }
+.sz-actions .sz-ok:active{ transform:translateY(1px) }
+
 </style>
 </head>
 <body>
@@ -1016,25 +1068,45 @@ function paintActions(view){
 }
 function netSizer(view){
   const L=view.legal;
-  const min=L.minTo, max=L.maxTo;
+  const min=L.minTo, max=L.maxTo, pot=view.pot;
   if(netUI.sizerAmount<min) netUI.sizerAmount=min;
   if(netUI.sizerAmount>max) netUI.sizerAmount=max;
+  const pctOf=(a)=> max>min ? Math.round((a-min)/(max-min)*100) : 100;
   const box=el(`<div class="sizer">
-    <div class="sizer-top"><span>Relancer à</span><span class="amount mono" id="szAmt">${fmt(netUI.sizerAmount)}</span></div>
-    <input type="range" id="szRange" min="${min}" max="${max}" step="10" value="${netUI.sizerAmount}">
-    <div class="quick" id="szQuick"></div>
-    <div class="sizer-actions">
-      <button class="cancel" id="szCancel">Annuler</button>
-      <button class="confirm" id="szOk">Valider</button>
-    </div></div>`);
+    <div class="sz-head">
+      <span class="lab">${L.isBet?"Miser":"Relancer à"}</span>
+      <span class="val mono"><span id="szAmt">${Math.round(netUI.sizerAmount).toLocaleString("fr-FR")}</span><small>$</small></span>
+    </div>
+    <div class="sz-range">
+      <input type="range" class="sz-slider" id="szRange" min="${min}" max="${max}" step="10" value="${netUI.sizerAmount}" style="--pct:${pctOf(netUI.sizerAmount)}%">
+      <div class="sz-minmax"><span>min ${fmt(min)}</span><span>tapis ${fmt(max)}</span></div>
+    </div>
+    <div class="sz-chips" id="szChips"></div>
+    <div class="sz-quick" id="szQuick"></div>
+    <div class="sz-actions">
+      <button class="sz-cancel" id="szCancel">Annuler</button>
+      <button class="sz-ok" id="szOk">Valider</button>
+    </div>
+  </div>`);
   const amtEl=box.querySelector("#szAmt"), range=box.querySelector("#szRange");
-  range.addEventListener("input",()=>{ netUI.sizerAmount=+range.value; amtEl.textContent=fmt(netUI.sizerAmount); });
-  const pot=view.pot, quicks=[["½ pot",Math.round(pot*0.5)],["¾ pot",Math.round(pot*0.75)],["Pot",pot],["Tapis",max]];
-  const q=box.querySelector("#szQuick");
-  quicks.forEach(([lab,amt])=>{ let v=Math.max(min,Math.min(max,amt)); v=Math.round(v/10)*10; if(v<min)v=min; if(v>max)v=max;
-    const b=el(`<button>${lab}<small>${fmt(v)}</small></button>`); b.addEventListener("click",()=>{ netUI.sizerAmount=v; range.value=v; amtEl.textContent=fmt(v); }); q.appendChild(b); });
+  const chipsBox=box.querySelector("#szChips"), q=box.querySelector("#szQuick");
+  function setAmt(v){ v=Math.round(v/10)*10; if(v<min)v=min; if(v>max)v=max; netUI.sizerAmount=v;
+    amtEl.textContent=v.toLocaleString("fr-FR"); range.value=v; range.style.setProperty("--pct", pctOf(v)+"%");
+    chipsBox.querySelectorAll("[data-inc]").forEach(b=>{ b.disabled = v>=max; }); }
+  range.addEventListener("input",()=>setAmt(+range.value));
+  // jetons d'incrément +10 / +20 / +50 / +100 (couleurs = valeurs)
+  [[10,"white"],[20,"green"],[50,"red"],[100,"blue"]].forEach(([v,c])=>{
+    const b=el(`<button data-inc="${v}"><span class="chip ${c} chip-md"></span><span class="v">+${v}</span></button>`);
+    b.addEventListener("click",()=>setAmt(netUI.sizerAmount+v)); chipsBox.appendChild(b);
+  });
+  // fractions de pot
+  [["½ pot",Math.round(pot*0.5)],["¾ pot",Math.round(pot*0.75)],["Pot",pot],["Tapis",max]].forEach(([lab,amt])=>{
+    let v=Math.max(min,Math.min(max,amt)); v=Math.round(v/10)*10; if(v<min)v=min; if(v>max)v=max;
+    const b=el(`<button>${lab}<small>${fmt(v)}</small></button>`); b.addEventListener("click",()=>setAmt(v)); q.appendChild(b);
+  });
   box.querySelector("#szCancel").addEventListener("click",()=>{ netUI.sizerOpen=false; paintActions(curView); });
   box.querySelector("#szOk").addEventListener("click",()=>{ const amt=netUI.sizerAmount; netUI.sizerOpen=false; doAct("raise",amt); });
+  setAmt(netUI.sizerAmount);
   return box;
 }
 
